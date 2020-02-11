@@ -20,7 +20,7 @@ MM = 41
 #Mtrim = 9
 Mtrim = 8
 
-saved_model_path = Utilities.saved_model_path
+saved_model_dir = Utilities.saved_model_dir
 sol_data = Utilities.LoadPickleSolData()
 num_test_solutions = 3 # number of test_solutions to select
 
@@ -32,7 +32,9 @@ for i in range(num_test_solutions):
 	sol_data_train[i] = sol_data[i]
 
 
-autoencoder = keras.models.load_model(saved_model_path + '/EncoderDecoder1Model.hdf5')
+autoencoder = keras.models.load_model(saved_model_dir + '/EncoderDecoder1Model.hdf5')
+autoencoder.summary()
+
 decoded_sols = autoencoder.predict(sol_data_train)
 
 for i in range(0,len(sol_data_train)):

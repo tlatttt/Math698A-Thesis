@@ -7,8 +7,10 @@ Created on Sat Feb  8 16:27:35 2020
 import numpy as np
 from sklearn.model_selection import train_test_split
 import Utilities
+import pandas as pd
+import matplotlib.pyplot as plt
 
-saved_model_path = Utilities.saved_model_path
+saved_model_path = Utilities.saved_model_dir
 Utilities.RemoveSavedModels()
 sol_data = Utilities.LoadPickleSolData()
   
@@ -79,6 +81,10 @@ print(sol_data_test.shape)
 
 history = autoencoder.fit(sol_data_train, sol_data_train,epochs=100,batch_size=4,shuffle=True, verbose=1,
                           validation_data=(sol_data_test,sol_data_test),callbacks=[mkcheckpoint])
+pd.DataFrame(history.history).plot()
+plt.grid(True)
+plt.gca().set_ylim(0,1)
+plt.show()
 
 ### SAVE weights
 autoencoder.save_weights(saved_model_path + '/EncoderDecoder1Weights.hdf5')

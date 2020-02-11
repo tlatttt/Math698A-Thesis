@@ -9,6 +9,7 @@ import numpy as np
 import my_readwrite
 import os
 import pickle
+import Utilities
 
 def LoadTrimSolData(path, MM, Mtrim):
 	names = my_readwrite.my_get_soltn_file_names_time(path, 0.15)
@@ -34,6 +35,7 @@ path = input("Enter the path of solution data: ")
 
 MM = 41
 Mtrim = 8
+Utilities.CheckRequiredDir()
 sol_data = LoadTrimSolData(path, MM, Mtrim)
 pickleFile = os.getcwd() + "/Data/trimsoldata.pk"
 saveDataAsPicklefile(pickleFile, sol_data)
