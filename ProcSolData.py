@@ -15,7 +15,7 @@ def LoadTrimSolData(path, MM, Mtrim):
 	names = my_readwrite.my_get_soltn_file_names_time(path, 0.15)
 	sol_data, solsize = my_readwrite.my_read_solution_trim(names[0],MM, Mtrim)	
 	num_samples=int(len(names))
-	
+	#num_samples = 500
 	for i in range(1,num_samples,1):
 	    print("Proscessing " + str(i) + " of " + str(num_samples) + " files for dataset")
 	    solarry, solsize1 = my_readwrite.my_read_solution_trim(names[i],MM, Mtrim)
