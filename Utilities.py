@@ -1,9 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 10 12:28:48 2020
+##########################################################################################################
+# Math 689: Thesis
+# Student: Thomas V Nguyen
+# Advisor: Prof. Alekseenko
+#
+# This module provides various functions that can be used by other modules.
+#
+##########################################################################################################
 
-@author: Tom Nguyen
-"""
 import os
 import pickle
 
@@ -15,9 +18,8 @@ def RemoveSavedModels():
 	for file in files:
 		os.remove(saved_model_dir + '/' + file)
 		
-def LoadPickleSolData():
-	dataFile = os.getcwd() + "/Data/trimsoldata.pk"
-	f = open(dataFile, "rb")
+def LoadPickleSolData(data_file):
+	f = open(data_file, "rb")
 	sol_data = pickle.load(f)
 	f.close()
 	return sol_data
