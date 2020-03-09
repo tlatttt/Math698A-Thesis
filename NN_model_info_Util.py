@@ -32,10 +32,4 @@ def PlotTrainingHistory(history):
     plt.grid(True)
     plt.gca().set_ylim(0,1)
     plt.show()
-
-# Testing code
-path = input("Enter saved model HDF5 file (q to quit): ")
-model = keras.models.load_model(path)
-ModelSummary(model)
-ModelLayers(model)
-
+    
