@@ -3,6 +3,8 @@
 \usepackage{indentfirst}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{graphicx}
+%\usepackage{wrapfig}
 
 \begin{document}
 \title{Development of Neural Networks for Learning The Boltzmann Equation	 }
@@ -125,23 +127,125 @@ I_i(\vec{\xi}) = \int_{\mathbb{R}^3}\int_{\mathbb{R}^3}f(t,\vec{x},\vec{v} - \ve
 \end{equation}
 The convolution formular (\ref{Convo}) is used in \cite{Alekseenko4} to develop an $O(N^2)$ method using discrete Fourier transform.
 
-\subsection{The Boltzmann equation's solution data set}
-In this section, we will discuss the method of generating the solution data set of the Boltzmann equation using the numerical methods described in section \ref{BoltzSol}. This solution data set will be used in section \ref{NN} for learning the Boltzmann equation's solution. The solution data was obtained based on the spatially homogeneous equation (\ref{BoltzHomo}): $\frac{\partial}{\partial t}f(t,\vec{v}) = I[f](t, \vec{v})$. Below are the steps of generating the solution data set:
+\subsection{The Boltzmann equation's solution dataset}
+In this section, we will discuss the method of generating the solution data set of the Boltzmann equation using the numerical methods described in section \ref{BoltzSol}. This solution dataset will be used in section \ref{NN} for learning the Boltzmann equation's solution. The solution data was obtained based on the spatially homogeneous equation (\ref{BoltzHomo}): $\frac{\partial}{\partial t}f(t,\vec{v}) = I[f](t, \vec{v})$. Below are the steps of generating the solution dataset:
 \begin{itemize}
 \item Macroparameters of two homogeneous Gaussians are randomly generated and consecutively normalized so that the sum of Gaussians has unit density, zero bulk velocity, and pre-selected values of temperature of 0.5 and 0.2. The sum of two homogeneous Gaussians is used as the initial data for the solution.
-\item Equation \ref{BoltzHomo} is solved by \cite{Alekseenko4} for each set of randomly generated initial data. As the solutions are evolving in time, they are saved at even intervals of time. The computed solutions were saved in the files which will be used to construct the data set for section \ref{NN}.
-\item The solutions were computed on $41^3$ discrete points. Due to the fact that solutions are very small near the boundary, a number of discrete points can be removed from the solution for analysis. The truncated solution has $25^3$ discrete points and the data set has about 5000  generated solution data.
+\item Equation \ref{BoltzHomo} is solved by \cite{Alekseenko4} for each set of randomly generated initial data. As the solutions are evolving in time, they are saved at even intervals of time. The computed solutions were saved in the files which will be used to construct the dataset for section \ref{NN}.
+\item The solutions were computed on $41^3$ discrete points. Due to the fact that solutions are very small near the boundary, a number of discrete points can be removed from the solution for analysis. The truncated solution has $25^3$ discrete points and the dataset has about 5000  generated solution data.
  
 \end{itemize}
 
 \section{Neural network for learning the solutions of Boltzmann equation} \label{NN}
-\subsection{Neural networks and autoencoder architectures}
-\subsection{Learning solution data using stack autoencoder}
-\subsection{Learing solution data using convolutional autoencoder}
+In this section, we will describe a general architecture of a neural network. How the gradient descent and backpropagation algorithms are used to train a neural network to obtain the weights of a neural network. Then we will specifically describe the autoencoder architectures that are used in this paper to learn the Boltzmann solution dataset.
+\subsection{Neural networks and autoencoder architectures} \label{NN}
+\subsubsection{A general fully connected neural network architecture } \label{FCNN}
+A general neural network composes of an input layer, a stack of hidden layers, and an output layer as shown in figure \ref{fig:NN} which has two hidden layers. Figgure \ref{fig:NN} is called a fully connected neural network because each neuron in a hidden layer is connected to all the neurons in the previous layer.
+\begin{figure}[h]
+	\includegraphics[width=.75\textwidth]{NN.pdf}
+	\caption{A general neural network architecture}
+	\label{fig:NN}
+\end{figure}
+A typical neural network may have many hidden layers. Each hidden layer consists of number of neuron and the outputs of each neuron are connected to the inputs of the neurons of the next layer.
+The figure \ref{fig:neuron} shows the components of a neuron. 
+\begin{figure}[h]
+\centering
+\includegraphics[width=.75\textwidth]{Neuron.pdf}	
+\caption{A neurol architecture}
+\label{fig:neuron}
+\end{figure}
+
+As shown in figure \ref{fig:neuron}, a neuron receives n inputs $[x_1,x_2, \dots, x_n]$. Each input $x_i$ is associated with a weight $w_i$ and the sum is computed by multiply each input $x_i$ by its associated weight $w_i$ and then sum the resulting values. The result of the weighted sum is then passed into the activation function $f$. Mathematically, we can express these calculations as:
+\begin{equation} \label{neuronfunc}
+\hat{y} = f\left(\sum_{i=0}^{n}x_i \times w_i\right) = f(z)
+\end{equation}
+Figure \ref{fig:actFuncs} shows the popular activation functions. Recently, the rectified linear unit function (ReLU) has become the default activation function due to it works well and fast to compute despite it is not differentiable at 0.
+\begin{figure}[h]
+\centering
+\includegraphics[width=1.0\textwidth]{activationFuncs.png}
+\caption{Activation functions}
+\label{fig:actFuncs}
+\end{figure}
+The reason that we need an activation function because each activation function is a nonlinear function and $\left(\sum_{i=0}^{n}x_i \times w_i\right)$ is a linear function. By chaining the $\left(\sum_{i=0}^{n}x_i \times w_i\right)$ to a nonlinear activation function $f$, the resulting function is a nonlinear function which can be used to fit any non-linear dataset.
+
+To train a neuron is to obtain the set of weights $w_i$ such that the function $f(z)$ is best fit of the dataset. There are two common error functions that are used to measure the error of the expected output value $y_i$ of a sample $x_i$ and the estimated output value $\hat{y}$ returned from the model: the mean square error (MSE) function and the mean absolute error (MAE) function:
+\begin{equation}
+MSE = \frac{1}{m}\sum_{i=1}^{m}(\hat{y}^i - y^i)^2 
+\end{equation}
+\begin{equation}
+MAE = \frac{1}{m}\sum_{i=1}^{m}|\hat{y}^i - y^i|
+\end{equation}
+where m is the number of instances in the dataset, $x^i$ is a vector of all the input features of the $i^{ih}$ instance, and $y^i$ is the expected output value. To obtain the set of weights $w_i$ that is best fit to the dataset is to find the optimal solution for either MSE or MAE functions. 
+
+Gradient descent algorithm is the popular method to find the optimal solution any convex function like MSE or MAE error functions. The gradient descent algorithm starts with an random weight vector $\vec{\mathbf{w}}$ and measures the local gradient of the error function with respect to the parameter weight vector $\vec{\mathbf{w}}$. Then it goes in the direction of descending gradient until the error function reaches to the minimum. Specifically, for a dataset $\mathbf{X}^{m \times n}$, in each iteration, the weight vector is computed as:
+\begin{equation} \label{fullbatchweightComp}
+\mathbf{\vec{w}}^{t+1} = \mathbf{\vec{w}}^t - \eta\nabla_{\mathbf{\vec{w}}}MSE(\mathbf{\vec{w}}) 
+\end{equation}
+where $\eta$ is a learning rate hyperparameter and
+\begin{equation} \label{fullbatchGrad}
+\nabla_{\mathbf{\vec{w}}}MSE(\mathbf{\vec{w}})= \frac{2}{m}\mathbf{X^T}(\mathbf{X}\vec{\mathbf{w}} - \mathbf{y})
+\end{equation}
+The (\ref{fullbatchweightComp}) and (\ref{fullbatchGrad}) is called batch gradient descent algorithm which uses the entire training dataset to compute the gradient at every step and it is expensive. The least expensive gradient descent is used stochastic gradient descent (SGD) algorithm which randomly picks a sample in every step and computes the gradients only on that random instance. In between, there is a algorithm called mini-batch gradient descent algorithm which compute the gradients based on small random sets of instances call mini-batches. 
+
+The above discussion is for training a neuron. A neural network is composed of an input layer, an output layer, and number of hidden layers in between the input and output layer. Each neuron in a hidden layer is fully or partially connected to the neurons in the next layer. Backpropagation algorithm is used to train a neural network. The backprogation is a two-stage process: forward pass and backward pass as shown in figure \ref{fig:NN}. Starting with random values of all the weight, below is the outline steps of the backpropagation algorithm:
+\begin{enumerate}
+\item The inputs are passed to the input layer which sends these inputs to the first hidden layer. The algorithm computes the outputs of all the neurons in this layer. Then the results are passed on to the next hidden layer and so on until the computed results reach to the output layer. This is a forward pass. All the intermediate results are recorded since these computed results are needed for the backward pass.
+\item Using a loss function, the algorithm measures the network's output error. It then computes how much each output connection contributed to the error.
+\item The algorithm then calculates error gradient for each neuron in the hidden layer below the output layer and propagating the error gradient backward to the hidden layers until the algorithm reaches to the input layer.
+\item Using these gradient errors and gradient descent method, the algorithm to update all the connection weights in the network. 
+\end{enumerate}
+The algorithm iterates these steps until the error of the network converges to the acceptable minimum value.
+
+\subsubsection{Convolutional neural network architecture} \label{CNN}
+In this project, we also use the convolutional neural network (CNN) to learn the Boltzmann equation's solutions. As shown in \ref{fig:CNN}, a CNN consists of input layers, convolutional layers, pooling layers, fully-connected layers, activation functions, and output layers. Comparing with the fully-connected neural network, a CNN architecture introduces two new building block: convolutional layers and pooling layers. Below, we briefly describes the structure of a convolutional layer and a pooling layer.
+
+In a convolutional layer, neurons are only partially connected with the neurons in the previous layer: each neuron is only connected to the neurons located within a small rectangle in the previous layer. This small window is called the receptive field. This architecture allows the CNN to focus on small low-level features in the preceding hidden layer, then assemble them into larger higher-level features in the next hidden layer, and so on. This receptive field window is then moved across the layer horizontally and vertically with a step size called the stride length. All the receptive field share the same set of weights known as the kernel or filter. The outputs from this filter is known as a feature map. A convolutional layer may have multiple filters with each filter has different weights allowing a convolutional layer to detect multiple features of the inputs. 
+
+After the convolutional layer is the pooling layer which is used to subsample the input image. Just like the convolutinal layer structure, each neuron in a pooling layer is connected to a number of neurons located in a small window receptive field in the previous layer. The difference between a convolutional layer and a pooling layer is that a pooling layer does to have the weights associated with a filter. The pooling layer uses an aggregate function such as max or mean to compute the maximum or the average among the neurons in a receptive field in a previous layer that are connected to a neuron in a pooling layer.
+
+After the convolutional and pooling layers, the remaining part of a CNN is the fully-connected layers and an output layer. The fully-connected layer architecture was discussed in section \ref{FCNN}.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{CNN-architecture.png}
+\caption{A basic convolutional neural network diagram}
+\label{fig:CNN}
+\end{figure}
+\subsection{Learning solution data using autoencoders}
+In this section, we will describe the deep autoencoder architecture and how the autoencode is used to learn the Boltzmann equation data solution and the Boltzmann collision operator. Figure \ref{fig:ae} shows a typical autoencoder architure. In an autoencoder, the number of neurons in an input layer is always equal to the number of neurons in the output layer. An autoencoder composes of two submodels: an encoder and a decoder.
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Autoencoder.pdf}
+\caption{A typical autoencoder architecture. An autoencoder composes of an encoder and a decoder. The encoder maps the input data to the code and the decoder reconstructs the inputs from the coding data}
+\label{fig:ae}
+\end{figure} 
+The encoder model maps the inputs of higher dimension to a much lower dimensional data called the code. Then the coding data are fed into the decoder and the decoder reconstructs to output as the approximations of  inputs. The dimension of the code is much smaller than the dimension of the input. Autoencoder can be used to approximate the solutions of the Boltzmann equation as shown in the figure \ref{fig:ae}. The encoder $r = \phi()\mathbf{x})$ maps discrete solutions to the code. The code is the input of the decoder $\mathbf{x'}=\phi^+(\mathbf{r})$ and the output of the decoder is the approximation of the solution data.
+
+We can also use autoencoder to learn the Boltzmann collision operator: $Q:\mathbb{R}^N\rightarrow\mathbb{R}^N$ which provides the derivatives of the velocity distribution
+\begin{equation}
+\partial_t{f(\vec{v})} = Q[f](\vec{v})
+\end{equation}
+As shown in figure \ref{fig:ColOpAE}, the Boltzmann collision operator is approximated by an autoencoder.
+\begin{figure}[h]
+		\centering
+	\includegraphics[width=.75\textwidth]{ColOpAE.pdf}
+	\caption{An autoencoder that is used to approximate the Boltzmann collision operator}
+	\label{fig:ColOpAE}
+\end{figure}
+\noindent To achieve fast evaluation, dimensions of the hidden layers should be significantly smaller than the size of input. Values predicted by the trained autoencoder can be used to approximate derivative of the solution and to do time integration. Formally, we can write
+\begin{equation}
+\partial_t{\tau} = \partial_t(\psi(f)) = \frac{\partial\psi}{\partial f}:\frac{\partial f}{\partial t} = \frac{\partial\psi}{\partial f}:Q(f) = \frac{\partial\psi}{\partial f}:Q(\psi^+(\tau)) = \phi(\tau)
+\end{equation}
+
+\subsubsection{Learing solution data using deep autoencoder}
+
+\subsubsection{Learing solution data using convolutional autoencoder}
 
 \section{Computational efficiency comparisons between the numerial and neural network methods for computing the solutions of Boltzmann equation } \label{Comparisons}
+
 \section{Conclusion} \label{Conclusion}
 
+\pagebreak
 \begin{thebibliography}{99}
 	\bibitem{RarefiedGasD}M. Kogan, Rarefied gas dynamics, Plenum Press, 1969.
 	\bibitem{IntroBoltz}Stewart Harris, An Introduction to the Theory of the Boltzmann Equation, 1971, 2004.

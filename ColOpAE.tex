@@ -7,11 +7,11 @@
 [neuronnode/.style={circle, draw=black, thick, minimum size=10mm},
 inputnode/.style={rectangle, draw=black, thick, minimum size=8mm},
 connect/.style={->,thick}]
-\draw [->, draw=black, very thick] (-4, 4) -- node[above] {Encoder: $r=\phi(\mathbf{x})$} (1, 4);
-\draw [->, draw=black, very thick]  (3, 4) -- node[above] {Decoder: $\mathbf{x'}=\phi^+(\mathbf{r})$} (8, 4);
+\draw [->, draw=black, very thick] (-4, 4) -- node[below] {$\tau = \psi(f)$} (-1, 4);
+\draw [->, draw=black, very thick] (0.5, 4) -- node[below] {$\rho = \Theta(\tau)$} (3.5, 4);
+\draw [->, draw=black, very thick]  (5, 4) -- node[below] {$f = \psi^+(r)$} (8, 4);
 \node [rotate=90] at (-5, 0) { discrete solution};
-\node [rotate=90] at (9, 0) {solution approximation};
-
+\node [rotate=90] at (9, 0) {Collision operation approximation};
 \node[neuronnode]	(input1) at (-4, 3) {$x_1$};
 \node[neuronnode]	(input2) at (-4, 1.5) {$x_2$};
 \node[neuronnode]	(input3) at (-4, 0) {$x_3$};
