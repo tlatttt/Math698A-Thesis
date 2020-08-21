@@ -9,6 +9,7 @@
 #SBATCH --mail-user=tvn17011@my.csun.edu
 #SBATCH --mail-type=begin
 #SBATCH --mail-type=end
+
 export OMP_NUM_THREADS=28
 
 cd /pylon5/ms560hp/tvn17011/autoencoders/
