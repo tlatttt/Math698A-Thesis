@@ -3,7 +3,7 @@
 # Student: Thomas V Nguyen
 # Advisor: Prof. Alekseenko
 #
-# This module provides various functions that can be used by other modules.
+# This module provides various utility functions that can be used by other modules.
 #
 ##########################################################################################################
 
@@ -13,11 +13,16 @@ import pickle
 saved_model_dir = 'SavedModels'
 data_dir = 'Data'
 
-def RemoveSavedModels():
-	files = os.listdir(saved_model_dir)
-	for file in files:
-		os.remove(saved_model_dir + '/' + file)
-		
+def RemoveSavedModels(dirpath=saved_model_dir):
+	if (os.path.exists(dirpath)):
+		files = os.listdir(dirpath)
+		for file in files:
+			os.remove(dirpath + '/' + file)
+	else:
+    		os.mkdir(dirpath)
+    		
+    	
+    		
 def LoadPickleSolData(data_file):
 	f = open(data_file, "rb")
 	sol_data = pickle.load(f)

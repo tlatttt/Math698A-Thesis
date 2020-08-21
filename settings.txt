@@ -1,0 +1,5 @@
+autoencoder_type DeepAE
+epochs 10
+hidden_layers 3
+code_len 32
+batch_size 1

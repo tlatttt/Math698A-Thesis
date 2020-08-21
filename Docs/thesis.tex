@@ -4,6 +4,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{appendix}
+\usepackage{subcaption}
 %\usepackage{wrapfig}
 
 \begin{document}
@@ -227,7 +229,7 @@ We can also use autoencoder to learn the Boltzmann collision operator: $Q:\mathb
 \end{equation}
 As shown in figure \ref{fig:ColOpAE}, the Boltzmann collision operator is approximated by an autoencoder.
 \begin{figure}[h]
-		\centering
+	\centering
 	\includegraphics[width=.75\textwidth]{ColOpAE.pdf}
 	\caption{An autoencoder that is used to approximate the Boltzmann collision operator}
 	\label{fig:ColOpAE}
@@ -238,12 +240,100 @@ As shown in figure \ref{fig:ColOpAE}, the Boltzmann collision operator is approx
 \end{equation}
 
 \subsubsection{Learing solution data using deep autoencoder}
+In this section, we will discuss the results of using deep autoencoders to learn the Boltzmann equation solutions. One can refer to appendix A and appendix B for the detail of how we used the software tools, language, and training environment to develop the different autoencoders. Table \ref{table:ae} below shows the accuracy of different deep autoencoders with various hidden layers and code lengths. Figure \ref{fig:lc} shows the learning curves of autoencoders with hidden layers of 1, 3, and 5 and code length of 32.
+
+\begin{table} [h!]
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c}
+	Hidden Layers & 1 & 1 & 1 & 3 & 3 & 3 & 5 & 5 & 5 \\
+	\hline
+	Code Length & 16 & 32 & 64 & 16 & 32 & 64 & 16 & 32 & 64 \\
+	\hline
+	Accuracy, MAE & 0.66 & 0.66 & 0.66 & 0.93 & 0.96 & 0.98 & 0.96 & 0.97 & 0.98
+\end{tabular}
+\caption{Accuracy of autoencoders with different number of hidden layers and code length. Mean absolute error (MAE) is used to measure the accuracy}
+\label{table:ae}
+\end{table}
+
+\begin{figure}[h]
+\begin{subfigure}{.5\textwidth}
+\includegraphics[width=.75\linewidth]{LearingCurve-HL1-CL32.png}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+\includegraphics[width=.75\linewidth]{LearingCurve-HL3-CL32.png}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+\includegraphics[width=.75\linewidth]{LearingCurve-HL5-CL32.png}
+\end{subfigure}
+\caption{Learning curves of autoencoders with hiddend layers of 1, 3, 5 and code length 32 }
+\label{fig:lc}
+\end{figure}
+\noindent From \ref{table:ae} and \ref{fig:lc}, we have the following observations:
+\begin{itemize}
+	\item For autoencoders which have one hidden layer, the accuracy scores are low: 0.66. In this case, these autoencoders are underfitting.
+	\item For autoencoders which have three hidden layers, the accuracy scores are very good. However, with code length of 64, the accuracy score is 0.98. In this case, the model could be overfitting.
+	\item For autoencoders which have five hidden layers, the accuracy scores improve slightly comparing with the autoencodes with three hidden layers. 
+\end{itemize}
+Among these autoencoders, the autoencode with three hidden layers and code length 32 is probably is the best choice model. The second choice is the autoencoder with three hidden layers and code length 16 because the model is less complex, faster to train and compute, and the accuracy score is still about 0.93.
 
 \subsubsection{Learing solution data using convolutional autoencoder}
 
 \section{Computational efficiency comparisons between the numerial and neural network methods for computing the solutions of Boltzmann equation } \label{Comparisons}
 
 \section{Conclusion} \label{Conclusion}
+
+\appendix
+\appendixpage
+\section{Software language and tools for developing autoencoders}
+Below are the software tools and language that we used to develop the autoencoders:
+\begin{itemize}
+	\item Computer language: Python 3.7.
+	\item Neural networks development tools: Scikit-Learn, Keras, and Tensorflow.
+	\item IDE development environment: VisualCode.
+\end{itemize}
+For code development, we use laptop/PC to develop the code, test and train autoencoders with solution data for only small number of iterations (or epoches) to ensure the code is working properly. Figures \ref{fig:settings}, \ref{fig:trainging}, and \ref{fig:training-results} shows how certain essential parmeters can be set by a setting file, the training accuracy in each epoch, and a directory that is used to save the training results.
+\begin{figure}[h!]
+	\includegraphics[width=.75\linewidth]{settings.png}
+	\caption{This setting file is for the user to change important parameters for training different autoencoders}
+	\label{fig:settings}
+\end{figure}
+\begin{figure}[h!]
+	\includegraphics[width=1\linewidth]{training.png}
+	\caption{Traing an autoencoder with three hidden layers, 10 epochs, code length=32}
+	\label{fig:trainging}
+\end{figure}
+\begin{figure}[h!]
+	\includegraphics[width=1\linewidth]{training-results.png}
+	\caption{This figure shows the training results that are saved in a directory. During the training, intermediate results are saved for each epoch. When the training completes, the learning curve plot is saved.}
+	\label{fig:training-results}
+\end{figure} 
+
+Because training autoencoders can take several hours and computer resources, after testing the code working properly, we transfer python code and dataset to the XSEDE supercomputer to fully train and test our autoencoders as we describe in the next section.
+
+\section{Testing and training autoencoder environments} 
+After developed, tested, and trained the autoencoders on local computer, for fully training the autoencoders with the solution data, we need to connect to the XSEDE supercomputer system to train the autoencoders. Below are steps of how to we transfer the code and solution dataset to the XSEDE system to train the autoencoders. One can refer to document "StepsAccessToHPC.docx" written by professor Alekseenko for the detail of how to setup an XSEDE account, install PuTTY, FileZilla, etc. to connect to the XSEDE systems:
+\begin{enumerate}
+	\item Using PuTTY tool to establish remote connection to the XSEDE system as shown in figure \ref{fig:PuTTY}.
+	\item Using FileZilla tool to connect to the XSEDE system and upload the python source codes, setting file, and solution dataset to a workspace directory on XSEDE under the home directory as show in figure \ref{fig:FileZilla}.
+	\item Need to install Python, TensorFlow, Scikit-Learn if they are not installed on the working directory.
+	\item Submit a batch file to XSEDE sytem to execute python code to train an autoencoder.
+	\item After the training completed, all the results and plots are save to a appropriate directory so that we can download these files to the local computer via FileZilla tool.
+	\item To train another autoencoders, we change the number of hidden layers, and code length in the setting file and submit the batch file to the XSEDE system to execute the code.
+\end{enumerate}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{PuTTY.png}
+	\caption{Using PuTTY tool to connect to the XSEDE system }
+	\label{fig:PuTTY}
+\end{figure}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{FileZilla.png}
+	\caption{Using FileZilla tool to upload or download files to the XSEDE system.}
+	\label{fig:FileZilla}
+\end{figure}
+Typically, when we train an autoencoder with 100 epoches (iterations) on the XSEDE system, it takes less than an hour while it takes several hours or multiple days and sometimes the computer crashed when training an autoencoder with 100 epoches on a PC.
+\section{Documents and source code revision control}
 
 \pagebreak
 \begin{thebibliography}{99}
