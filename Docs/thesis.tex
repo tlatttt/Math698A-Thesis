@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{appendix}
 \usepackage{subcaption}
+\usepackage{hyperref}
 %\usepackage{wrapfig}
 
 \begin{document}
@@ -240,7 +241,7 @@ As shown in figure \ref{fig:ColOpAE}, the Boltzmann collision operator is approx
 \end{equation}
 
 \subsubsection{Learing solution data using deep autoencoder}
-In this section, we will discuss the results of using deep autoencoders to learn the Boltzmann equation solutions. One can refer to appendix A and appendix B for the detail of how we used the software tools, language, and training environment to develop the different autoencoders. Table \ref{table:ae} below shows the accuracy of different deep autoencoders with various hidden layers and code lengths. Figure \ref{fig:lc} shows the learning curves of autoencoders with hidden layers of 1, 3, and 5 and code length of 32.
+In this section, we will discuss the results of using deep autoencoders to learn the Boltzmann equation solutions. One can refer to appendix A, appendix B, appendix C for the detail of how we used the software tools, language, and training environment to develop the different autoencoders. Table \ref{table:ae} below shows the accuracy of different deep autoencoders with various hidden layers and code lengths. Figure \ref{fig:lc} shows the learning curves of autoencoders with hidden layers of 1, 3, and 5 and code length of 32.
 
 \begin{table} [h!]
 \centering
@@ -318,7 +319,7 @@ After developed, tested, and trained the autoencoders on local computer, for ful
 	\item Need to install Python, TensorFlow, Scikit-Learn if they are not installed on the working directory.
 	\item Submit a batch file to XSEDE sytem to execute python code to train an autoencoder.
 	\item After the training completed, all the results and plots are save to a appropriate directory so that we can download these files to the local computer via FileZilla tool.
-	\item To train another autoencoders, we change the number of hidden layers, and code length in the setting file and submit the batch file to the XSEDE system to execute the code.
+	\item To train another autoencoders, change the number of hidden layers, and code length in the setting file and submit the batch file to the XSEDE system to execute the code.
 \end{enumerate}
 \begin{figure}[h!]
 	\centering
@@ -332,9 +333,24 @@ After developed, tested, and trained the autoencoders on local computer, for ful
 	\caption{Using FileZilla tool to upload or download files to the XSEDE system.}
 	\label{fig:FileZilla}
 \end{figure}
-Typically, when we train an autoencoder with 100 epoches (iterations) on the XSEDE system, it takes less than an hour while it takes several hours or multiple days and sometimes the computer crashed when training an autoencoder with 100 epoches on a PC.
+Typically, when we train an autoencoder with 100 epoches (iterations) on the XSEDE system, it takes less than an hour while it takes several hours and sometimes the computer crashed when training an autoencoder with 50 epoches on our PC.
 \section{Documents and source code revision control}
-
+We maintain source files, documents, and revisions in GitHub under \\ \href{https://github.com/tlatttt/Math698A-Thesis}{https://github.com/tlatttt/Math698A-Thesis}. Figure \ref{fig:GitHub} shows the source files and directories of this project on the GibHub. 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{GitHub.png}
+	\caption{A screen shot of the source files, documents that are maintained on GitHub}
+	\label{fig:GitHub}
+\end{figure}
+Below are the important source files and directories for this project:
+\begin{itemize}
+	\item  \textit{AutoEncoder.py} is the main module responsible to create deep and CNN autoencoders, perform the training, and save the models and accuracy scores.
+	\item \textit{Settings.txt} is the text file for changing the parameters for autoencoders such as number of epoch, number of hidden layers, etc.
+	\item \textit{Utilities.py} is a module that provides utility functions for other modules. \textit{AutoEncoder.py} calls a function in this module to delete the previous trained results in a directory before training an autoencoder so that the new trained results can be saved in this directory.
+	\item \textit{Data} is a directory that contains the training and validation files used to train the autoencoders.
+	\item \textit{Docs} is a directory contains documents  this project. This directory also contains LaTex source files that are used to generate the PDF document files.
+	\item \textit{Ref Papers} contains all the reference papers for the thesis report.	
+\end{itemize}
 \pagebreak
 \begin{thebibliography}{99}
 	\bibitem{RarefiedGasD}M. Kogan, Rarefied gas dynamics, Plenum Press, 1969.
