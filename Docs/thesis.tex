@@ -269,7 +269,7 @@ In this section, we will discuss the results of using deep autoencoders to learn
 \caption{Learning curves of autoencoders with hiddend layers of 1, 3, 5 and code length 32 }
 \label{fig:lc}
 \end{figure}
-\noindent From \ref{table:ae} and \ref{fig:lc}, we have the following observations:
+\noindent From table \ref{table:ae} and figure \ref{fig:lc}, we have the following observations:
 \begin{itemize}
 	\item For autoencoders which have one hidden layer, the accuracy scores are low: 0.66. In this case, these autoencoders are underfitting.
 	\item For autoencoders which have three hidden layers, the accuracy scores are very good. However, with code length of 64, the accuracy score is 0.98. In this case, the model could be overfitting.
@@ -309,7 +309,7 @@ For code development, we use laptop/PC to develop the code, test and train autoe
 	\label{fig:training-results}
 \end{figure} 
 
-Because training autoencoders can take several hours and computer resources, after testing the code working properly, we transfer python code and dataset to the XSEDE supercomputer to fully train and test our autoencoders as we describe in the next section.
+Because training autoencoders can take several hours to run and comsume a lot of computer resources, after testing the code working properly, we transfer python code and dataset to the XSEDE supercomputer to fully train and test our autoencoders as we describe in the next section.
 
 \section{Testing and training autoencoder environments} 
 After developed, tested, and trained the autoencoders on local computer, for fully training the autoencoders with the solution data, we need to connect to the XSEDE supercomputer system to train the autoencoders. Below are steps of how to we transfer the code and solution dataset to the XSEDE system to train the autoencoders. One can refer to document "StepsAccessToHPC.docx" written by professor Alekseenko for the detail of how to setup an XSEDE account, install PuTTY, FileZilla, etc. to connect to the XSEDE systems:
