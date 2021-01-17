@@ -1,5 +1,9 @@
-autoencoder_type DeepAE
-epochs 10
-hidden_layers 3
+learn_type learn_collision_op
+epochs 1000
+hidden_layers 5
 code_len 32
-batch_size 1
+batch_size 32
+noise 0
+normalize 0
+predict_type 1
+num_test_solutions 20
