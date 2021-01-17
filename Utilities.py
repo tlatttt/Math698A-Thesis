@@ -10,10 +10,9 @@
 import os
 import pickle
 
-saved_model_dir = 'SavedModels'
 data_dir = 'Data'
 
-def RemoveSavedModels(dirpath=saved_model_dir):
+def RemoveSavedModels(dirpath):
 	if (os.path.exists(dirpath)):
 		files = os.listdir(dirpath)
 		for file in files:
@@ -29,9 +28,14 @@ def LoadPickleSolData(data_file):
 	f.close()
 	return sol_data
 
-def CheckRequiredDir():
-	if (os.path.exists(saved_model_dir) == False):
-		os.mkdir(saved_model_dir)
-		
+def CheckRequiredDir():		
 	if (os.path.exists(data_dir) == False):
 		os.mkdir(data_dir)
+
+def LoadSettings():
+    settings = {}
+    with open("settings.txt") as f:
+        for line in f:
+            (key, val) = line.split()
+            settings[key] = val
+    return settings
