@@ -5,7 +5,7 @@
 #
 # This module is to read the solution files from a folder that contains all the solutions and save
 # the solution data and collision data files.
-# These pickle files will be loaded by another modulew to do the model training and model evalution.
+# These pickle files will be loaded by another modulew to do the model training and model evaluation.
 # 
 ##########################################################################################################
  
@@ -15,11 +15,12 @@ import os
 import pickle
 import Utilities
 
-def LoadSolCollData(path, MM, Mtrim, cutoff_time):
-	names = my_readwrite.my_get_soltn_file_names_time(path, 0.3)
+def LoadSolCollData(path):
+	names = my_readwrite.my_get_soltn_file_names_time(path, cutoff_time)
 	sol_data_train, coll_data_train, solsize = my_readwrite.my_read_sol_coll_trim(names[0],MM, Mtrim)  # this is the first file
 	zz = len(names)
-	num_samples=int(len(names))
+	num_samples = int(len(names))
+	#num_samples = 100
 	for i in range(1,num_samples,1):	
 		if (i % 10) == 0:
     			print("Proscessing " + str(i) + " of " + str(num_samples))
@@ -32,8 +33,8 @@ def LoadSolCollData(path, MM, Mtrim, cutoff_time):
 
 	return sol_data_train, coll_data_train
 
-def SaveSolColData(solFilePath, collFilePath):	
-	sol_data_train, coll_data_train = LoadSolCollData(path='../alexdata/sphomruns/', MM=41, Mtrim=5, cutoff_time=0.3)
+def CreateSolColData(solFilePath, collFilePath):	
+	sol_data_train, coll_data_train = LoadSolCollData(path='../alexdata/sphomruns/')
 	sol_train_file = open(solFilePath, "wb")
 	pickle.dump(sol_data_train, sol_train_file, protocol=4)
 	sol_train_file.close()
@@ -41,7 +42,7 @@ def SaveSolColData(solFilePath, collFilePath):
 	pickle.dump(coll_data_train, coll_train_file, protocol=4)
 	coll_train_file.close()
 
-def LoadSolData(path, MM, Mtrim, cutoff_time):
+def LoadSolData(path):
     names = my_readwrite.my_get_soltn_file_names_time(path, cutoff_time)
     sol_data, solsize = my_readwrite.my_read_solution_trim(names[0],MM, Mtrim)
     num_samples=int(len(names))
@@ -58,11 +59,17 @@ def LoadSolData(path, MM, Mtrim, cutoff_time):
     print(sol_data.shape)
     return sol_data
 
-def SaveSolData(solFilePath):
-    solData = LoadSolData(path='../alexdata/sphomruns/', MM=41, Mtrim=8, cutoff_time=0.15)
+def CreateSolData(solFilePath):
+    solData = LoadSolData(path='../alexdata/sphomruns/')
     sol_file = open(solFilePath, "wb")
     pickle.dump(solData, sol_file, protocol=4)
     sol_file.close()
 
-SaveSolColData("Data/full_sol_data.pk", "Data/full_coll_data.pk")
-#SaveSolData("Data/sol_data.pk")
+MM = 41
+Mtrim = 5
+cutoff_time = 0.30
+
+sol_data_file = f"Data/sol_data_MM_{MM}_MT_{Mtrim}_CT_{cutoff_time}.pk"
+coll_data_file = f"Data/coll_data_MM_{MM}_MT_{Mtrim}_CT_{cutoff_time}.pk"
+CreateSolColData(sol_data_file, coll_data_file)
+#CreateSolData(sol_data_file)

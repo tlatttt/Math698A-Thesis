@@ -39,3 +39,4 @@ def LoadSettings():
             (key, val) = line.split()
             settings[key] = val
     return settings
+

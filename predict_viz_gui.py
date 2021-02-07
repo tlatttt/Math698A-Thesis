@@ -70,12 +70,16 @@ def RandomPredicts():
 
 def computeErrors(sol_data_train, decoded_sols):
     errors.clear()
+    staErrors.clear()
     for i in range(0, int(numTestSols.get())):
         max_sol= np.amax(np.abs(sol_data_train[i,:]))
         max_sol = np.max([max_sol, 1.0e-6])
         error = np.amax(np.absolute(sol_data_train[i,:]-decoded_sols[i,:]))/max_sol
         errors.append(error)
+        e = np.absolute(sol_data_train[i,:]-decoded_sols[i,:])
+        staErrors.append(f"mean = {e.mean():.4f}, std = {e.std():.4f}, var = {e.var():.4f}, min = {e.min():.4f}, max = {e.max():.4f}")
     errorListVar.set(errors)
+    staErrorListVar.set(staErrors)
 
 def plotOnePredictedSol(train_sol, decoded_sol):
     MM = int(MMVar.get())
@@ -129,9 +133,9 @@ f.grid(row=0, column=0, sticky=(N,S,E,W), padx=10, pady=10)
 
 # Choose learning type: learing solution or learning collision operator
 learnType = StringVar()
-learnType.set("learn sol")
-ttk.Radiobutton(f, text="Learn Solutions", variable=learnType, value="learn sol").grid(row=0, column=0, pady=5)
-ttk.Radiobutton(f, text="Learn Collision Operator", variable=learnType, value="learn col op").grid(row=0,column=1,pady=5)
+learnType.set("ls")
+ttk.Radiobutton(f, text="Learn Solutions", variable=learnType, value="ls").grid(row=0, column=0, pady=5)
+ttk.Radiobutton(f, text="Learn Collision Operator", variable=learnType, value="lco").grid(row=0,column=1,pady=5)
 
 # Trimming parameters and solution info
 MMVar = IntVar()
@@ -185,15 +189,26 @@ solList.grid(row=6, column=0, columnspan=5, sticky=(W,E),pady=5)
 solList.bind('<<ListboxSelect>>', plotPredictedSol)
 
 # Error list
-ttk.Label(f, text="errors").grid(row=5, column=6)
+ttk.Label(f, text="errors").grid(row=5, column=6, pady=5)
 errors = []
 errorListVar = StringVar()
 errorListVar.set(errors)
 errorList = Listbox(f, listvariable=errorListVar)
 sb2 = ttk.Scrollbar(f, orient=VERTICAL, command=errorList.yview)
-sb2.grid(row=6,column=7, sticky=(W,N,S))
 errorList.configure(yscrollcommand=sb2.set)
 errorList.grid(row=6,column=6, sticky=(W,E),pady=5)
+sb2.grid(row=6,column=7, sticky=(W,N,S))
+
+# List for statistical errors
+ttk.Label(f, text="Statistical errors").grid(row=7, column=0, sticky="W", pady=5)
+staErrors = []
+staErrorListVar = StringVar()
+staErrorListVar.set(errors)
+staErrorList = Listbox(f, listvariable=staErrorListVar)
+sb3 = ttk.Scrollbar(f, orient=VERTICAL, command=staErrorList.yview)
+staErrorList.configure(yscrollcommand=sb3.set)
+staErrorList.grid(row=8,column=0, columnspan=5,sticky=(W,E),pady=5)
+sb3.grid(row=8, column=5, sticky=(W,N,S))
 
 root.rowconfigure(0, weight=1)
 root.columnconfigure(0, weight=1)
@@ -204,6 +219,8 @@ f.rowconfigure(3, weight=1)
 f.rowconfigure(4, weight=1)
 f.rowconfigure(5, weight=1)
 f.rowconfigure(6, weight=1)
+f.rowconfigure(7, weight=1)
+f.rowconfigure(8, weight=1)
 
 f.columnconfigure(0, weight=1)
 f.columnconfigure(1, weight=1)

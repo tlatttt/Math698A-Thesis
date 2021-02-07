@@ -1,9 +1,8 @@
-learn_type learn_collision_op
-epochs 1000
-hidden_layers 5
+learn_type learn_coll_op_cnn
+epochs 10
+hidden_layers 7
 code_len 32
-batch_size 32
+batch_size 64
 noise 0
-normalize 0
-predict_type 1
+predict_type 0
 num_test_solutions 20
