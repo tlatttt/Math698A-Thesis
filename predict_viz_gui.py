@@ -25,7 +25,8 @@ import my_viz_routines
 import Utilities
 
 # define global variables
-sol_data_train =[]
+sol_data_train = []
+coll_data_train = []
 decoded_sols = []
 solsize = 0
 
@@ -38,14 +39,15 @@ def LoadSolutions():
         test_sols_names.append(names[ii])
     MM = int(MMVar.get())
     Mtrim = int(MtrimVar.get())
-    sol_data_train, solsize = my_readwrite.my_read_solution_trim(test_sols_names[0],MM, Mtrim)  # this is the first file
+    sol_data_train, coll_data_train, solsize = my_readwrite.my_read_sol_coll_trim(test_sols_names[0],MM, Mtrim)  # this is the first file
     zz = len(test_sols_names)
     for i in range(zz):
-        solarry, solsize1 = my_readwrite.my_read_solution_trim(test_sols_names[i], MM, Mtrim)
+        solarry, collarry, solsize1 = my_readwrite.my_read_sol_coll_trim(test_sols_names[i], MM, Mtrim)
         assert solsize1==solsize  # a check that all arrays have the same size -- should be true, but still..
         sol_data_train = np.concatenate((sol_data_train, solarry), axis = 0)
+        coll_data_train = np.concatenate((coll_data_train, collarry), axis=0) 
     
-    return test_sols_names, sol_data_train, solsize
+    return test_sols_names, sol_data_train, coll_data_train, solsize
 
 def SelectModel():
     global model
@@ -61,11 +63,16 @@ def SelectDataFolder():
     datapath.set(dir)
 
 def RandomPredicts():
-    global sol_data_train, decoded_sols, solsize
-    solfiles, sol_data_train, solsize = LoadSolutions()
+    global sol_data_train, coll_data_train, decoded_sols, solsize
+    solfiles, sol_data_train, coll_data_train, solsize = LoadSolutions()
     solfilesVar.set(solfiles)
-    decoded_sols =model.predict(sol_data_train)
-    computeErrors(sol_data_train, decoded_sols)
+    if (learnType.get() == "ls"):
+        decoded_sols =model.predict(sol_data_train)
+        computeErrors(sol_data_train, decoded_sols)
+    else:
+        decoded_sols =model.predict(coll_data_train)
+        computeErrors(coll_data_train, decoded_sols)
+
     solsizeVar.set("Solution size: " + str(solsize))
 
 def computeErrors(sol_data_train, decoded_sols):
@@ -74,7 +81,10 @@ def computeErrors(sol_data_train, decoded_sols):
     for i in range(0, int(numTestSols.get())):
         max_sol= np.amax(np.abs(sol_data_train[i,:]))
         max_sol = np.max([max_sol, 1.0e-6])
-        error = np.amax(np.absolute(sol_data_train[i,:]-decoded_sols[i,:]))/max_sol
+        if (learnType.get() == "ls"):
+            error = np.amax(np.absolute(sol_data_train[i,:]-decoded_sols[i,:]))/max_sol
+        else:
+            error = np.amax(np.absolute(coll_data_train[i,:]-decoded_sols[i,:]))/max_sol
         errors.append(error)
         e = np.absolute(sol_data_train[i,:]-decoded_sols[i,:])
         staErrors.append(f"mean = {e.mean():.4f}, std = {e.std():.4f}, var = {e.var():.4f}, min = {e.min():.4f}, max = {e.max():.4f}")
@@ -107,7 +117,10 @@ def plotOnePredictedSol(train_sol, decoded_sol):
 def plotPredictedSol(*args):
     idx = solList.curselection()
     i = int(idx[0])
-    train_sol = sol_data_train[i]
+    if (learnType.get() == "ls"):
+        train_sol = sol_data_train[i]
+    else:
+        train_sol = coll_data_train[i]
     decoded_sol = decoded_sols[i]
     plotOnePredictedSol(train_sol, decoded_sol)
 
@@ -120,9 +133,12 @@ def PlotOnePredictedSol():
 
     MM = int(MMVar.get())
     Mtrim = int(MtrimVar.get())
-    sol_train, solsize = my_readwrite.my_read_solution_trim(solfile,MM, Mtrim)  # this is the first file
+    sol_train, coll_train, solsize = my_readwrite.my_read_sol_coll_trim(solfile,MM, Mtrim)  # this is the first file
     decoded_sol =model.predict(sol_train)
-    plotOnePredictedSol(sol_train[0],decoded_sol[0])    
+    if (learnType.get() == "ls"):
+        plotOnePredictedSol(sol_train[0],decoded_sol[0])
+    else:
+        plotOnePredictedSol(coll_data_train[0],decoded_sol[0])    
 
 
 # Layout GUI
@@ -141,9 +157,9 @@ ttk.Radiobutton(f, text="Learn Collision Operator", variable=learnType, value="l
 MMVar = IntVar()
 MMVar.set(41)
 MtrimVar = IntVar()
-MtrimVar.set(0)
+MtrimVar.set(5)
 cutoff_time = DoubleVar()
-cutoff_time.set(0.15)
+cutoff_time.set(0.30)
 ttk.Label(f, text="Trim parameters: ").grid(row=1, column=0, pady=5, sticky="w")
 ttk.Label(f, text="MM:").grid(row=1,column=1,sticky="e",padx=5)
 MM_spin = ttk.Spinbox(f, from_=20, to=41, width=5, textvariable=MMVar).grid(row=1, column=2, sticky="w")
@@ -158,7 +174,7 @@ ttk.Label(f, textvariable=solsizeVar).grid(row=1, column=7, sticky="w")
 # Select model file
 modelSelBtn = ttk.Button(f, text="Select a model", command=SelectModel).grid(row=2,column=0, pady=5, sticky="w")
 modelVar = StringVar()
-modelVar.set("C:/Courses/Math698A-Thesis/learn_solutions-HL3-CL32/Model.hdf5")
+modelVar.set("C:/Courses/Math698A-Thesis/LearnSolModel.hdf5")
 model_path = ttk.Label(f, textvariable=modelVar).grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
 # Select data folder
