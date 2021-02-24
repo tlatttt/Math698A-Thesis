@@ -41,7 +41,7 @@ def LoadSolutions():
     Mtrim = int(MtrimVar.get())
     sol_data_train, coll_data_train, solsize = my_readwrite.my_read_sol_coll_trim(test_sols_names[0],MM, Mtrim)  # this is the first file
     zz = len(test_sols_names)
-    for i in range(zz):
+    for i in range(1,zz):
         solarry, collarry, solsize1 = my_readwrite.my_read_sol_coll_trim(test_sols_names[i], MM, Mtrim)
         assert solsize1==solsize  # a check that all arrays have the same size -- should be true, but still..
         sol_data_train = np.concatenate((sol_data_train, solarry), axis = 0)
@@ -70,7 +70,7 @@ def RandomPredicts():
         decoded_sols =model.predict(sol_data_train)
         computeErrors(sol_data_train, decoded_sols)
     else:
-        decoded_sols =model.predict(coll_data_train)
+        decoded_sols =model.predict(sol_data_train)
         computeErrors(coll_data_train, decoded_sols)
 
     solsizeVar.set("Solution size: " + str(solsize))
@@ -134,11 +134,11 @@ def PlotOnePredictedSol():
     MM = int(MMVar.get())
     Mtrim = int(MtrimVar.get())
     sol_train, coll_train, solsize = my_readwrite.my_read_sol_coll_trim(solfile,MM, Mtrim)  # this is the first file
-    decoded_sol =model.predict(sol_train)
+    decoded_sol = model.predict(sol_train)
     if (learnType.get() == "ls"):
         plotOnePredictedSol(sol_train[0],decoded_sol[0])
     else:
-        plotOnePredictedSol(coll_data_train[0],decoded_sol[0])    
+        plotOnePredictedSol(coll_train[0],decoded_sol[0])    
 
 
 # Layout GUI

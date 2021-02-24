@@ -9,23 +9,13 @@
 
 import numpy as np
 import os
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.axes3d import Axes3D
-import pandas as pd
-from sklearn.model_selection import train_test_split
 import Utilities
 
-import NN_model_info_Util
-
-import sklearn
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import GaussianNoise
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
 
 import random
 import numpy as np
@@ -46,50 +36,71 @@ def BuildDenseAutoEncoderModel():
     decoder = keras.models.Sequential()
 
     encoder.add(keras.layers.Input(solsize))
+    encoder.add(keras.layers.Dropout(0.40))
     keras.layers.BatchNormalization()
     if (hidden_layer_num == 1):
-        encoder.add(keras.layers.Dense(code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(solsize, activation='relu', input_shape=[code_len]))
+        encoder.add(keras.layers.Dense(code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(solsize, kernel_initializer="he_normal", input_shape=[code_len]))
+        decoder.add(keras.layers.LeakyReLU())
+        
     elif (hidden_layer_num == 3):
-        encoder.add(keras.layers.Dense(2*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        encoder.add(keras.layers.Dense(code_len, activation='relu'))
-        keras.layers.BatchNormalization()
+        encoder.add(keras.layers.Dense(2*code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.BatchNormalization())
+        encoder.add(keras.layers.Dense(code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
 
-        decoder.add(keras.layers.Dense(2*code_len, activation='relu', input_shape=[code_len]))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(solsize, activation='relu'))
+        decoder.add(keras.layers.Dense(2*code_len, kernel_initializer="he_normal", input_shape=[code_len]))
+        decoder.add(keras.layers.LeakyReLU())
+        decoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(solsize, kernel_initializer="he_normal"))
+        decoder.add(keras.layers.LeakyReLU())
     elif (hidden_layer_num == 5):
-        encoder.add(keras.layers.Dense(4*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        encoder.add(keras.layers.Dense(2*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        encoder.add(keras.layers.Dense(code_len, activation='relu'))
-        keras.layers.BatchNormalization()
+        encoder.add(keras.layers.Dense(4*code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
+        encoder.add(keras.layers.Dense(2*code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
+        encoder.add(keras.layers.Dense(code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
 
-        decoder.add(keras.layers.Dense(2*code_len, activation='relu', input_shape=[code_len]))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(4*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(solsize, activation='relu'))
+        decoder.add(keras.layers.Dense(2*code_len, kernel_initializer="he_normal", input_shape=[code_len]))
+        decoder.add(keras.layers.LeakyReLU())
+        decoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(4*code_len, kernel_initializer="he_normal"))
+        decoder.add(keras.layers.LeakyReLU())
+        decoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(solsize, kernel_initializer="he_normal"))
+        decoder.add(keras.layers.LeakyReLU())
     else:
-        encoder.add(keras.layers.Dense(8*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        encoder.add(keras.layers.Dense(4*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        encoder.add(keras.layers.Dense(2*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        encoder.add(keras.layers.Dense(code_len, activation='relu'))
-        keras.layers.BatchNormalization()
+        encoder.add(keras.layers.Dense(8*code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
+        encoder.add(keras.layers.Dense(4*code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
+        encoder.add(keras.layers.Dense(2*code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
+        encoder.add(keras.layers.Dense(code_len, kernel_initializer="he_normal"))
+        encoder.add(keras.layers.LeakyReLU())
+        encoder.add(keras.layers.BatchNormalization())
 
-        decoder.add(keras.layers.Dense(2*code_len, activation='relu', input_shape=[code_len]))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(4*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(8*code_len, activation='relu'))
-        keras.layers.BatchNormalization()
-        decoder.add(keras.layers.Dense(solsize, activation='relu'))
+        decoder.add(keras.layers.Dense(2*code_len, input_shape=[code_len]))
+        decoder.add(keras.layers.LeakyReLU())
+        decoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(4*code_len, kernel_initializer="he_normal"))
+        decoder.add(keras.layers.LeakyReLU())
+        decoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(8*code_len, kernel_initializer="he_normal"))
+        decoder.add(keras.layers.LeakyReLU())
+        decoder.add(keras.layers.BatchNormalization())
+        decoder.add(keras.layers.Dense(solsize, kernel_initializer="he_normal"))
+        decoder.add(keras.layers.LeakyReLU())
 
     autoencoder = keras.models.Sequential([encoder, decoder])
     return encoder, decoder, autoencoder
@@ -119,10 +130,14 @@ code_len = int(settings['code_len'])
 batch_size = int(settings['batch_size'])
 noise = int(settings["noise"])
 
-sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
-coll_data = Utilities.LoadPickleSolData("Data/full_coll_data.pk")
-#sol_data = Utilities.LoadPickleSolData("Data/cleaned_sol_data.pk")
-#coll_data = Utilities.LoadPickleSolData("Data/cleaned_coll_data.pk")
+#sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
+#coll_data = Utilities.LoadPickleSolData("Data/full_coll_data.pk")
+sol_data = Utilities.LoadPickleSolData("Data/cleaned_sol_data.pk")
+coll_data = Utilities.LoadPickleSolData("Data/cleaned_coll_data.pk")
+
+# scale data between 0 and 1
+#sol_data = (sol_data - np.min(sol_data))/np.max(sol_data)
+#coll_data = (coll_data - np.min(coll_data))/np.max(coll_data)
 
 solsize = sol_data.shape[1]
 
@@ -137,9 +152,9 @@ Utilities.RemoveSavedModels(savedModelPath)
 # Create an output file for writing info during the training
 outfile = open(savedModelPath + "/output.txt", "w")
 
-weight_files = savedModelPath + "/TLWeights.hdf5"
+weight_files = savedModelPath + "/BestLearnColOpModel.hdf5"
 mkcheckpoint=ModelCheckpoint(weight_files, monitor='val_loss',
-                             verbose=0, save_best_only=True, save_weights_only=True,
+                             verbose=0, save_best_only=True,
                              mode='auto', period=1)
 
 mkearlystopping = EarlyStopping(patience=50, restore_best_weights=True)
@@ -157,30 +172,6 @@ history = learnColOp.fit(sol_data_train, coll_data_train,
                         shuffle=True,
                         verbose=1,
                         validation_data=(sol_data_test,coll_data_test),callbacks=[mkcheckpoint, saveEpochInfoCb])
-
-hist_pd = pd.DataFrame(history.history)
-hist_pd.to_csv(f"{savedModelPath}/history.csv")
-ax = hist_pd.plot()
-title = f'Learning Curve: hidden layers:{hidden_layer_num}, code length:{code_len}'
-ax.set_title(title)
-learning_curve_file = f"{savedModelPath}/LearingCurve-HL{hidden_layer_num}-CL{code_len}.png"
-ax.figure.savefig(learning_curve_file)
-#plt.show()
-
-# Do testing for trained model
-outfile.write("\nPredict solutions and compute errors\n")
-decoded_sols = learnColOp.predict(coll_data_test)
-for i in range(0, 50):
-    max_sol = np.amax(np.abs(coll_data_test[i,:]))
-    max_sol = np.max([max_sol, 1.0e-6])
-    error = np.amax(np.absolute(coll_data_test[i,:]-decoded_sols[i,:]))/max_sol
-    outfile.write(f"{error:.4f}\n")
-
-# Compute error statistics
-outfile.write("\nCompute error statistics\n")
-for i in range(0, 50):
-    error = np.absolute(coll_data_test[i,:] - decoded_sols[i,:])
-    outfile.write(f"mean = {error.mean():.4f}, std = {error.std():.4f}, var = {error.var():.4f}, min = {error.min():.4f}, max = {error.max():.4f}\n")
 
 # SAVE weights and model
 learnColOp.save_weights(savedModelPath + '/LearnColOpWeights.hdf5')

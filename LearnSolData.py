@@ -11,23 +11,13 @@
 
 import numpy as np
 import os
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.axes3d import Axes3D
-import pandas as pd
-from sklearn.model_selection import train_test_split
 import Utilities
 
-import NN_model_info_Util
-
-import sklearn
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import GaussianNoise
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
 
 import random
 import numpy as np
@@ -86,7 +76,12 @@ batch_size = int(settings['batch_size'])
 noise = int(settings["noise"]) 
 
 sol_data = Utilities.LoadPickleSolData("Data/cleaned_sol_data.pk")
-sol_data_train, sol_data_val = train_test_split(sol_data, test_size = 0.1)
+#sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
+
+# sol_data_train, sol_data_val = train_test_split(sol_data, test_size = 0.1)
+data_test_size = int(sol_data.shape[0]*0.1)
+sol_data_val = sol_data[:data_test_size, :]
+sol_data_train = sol_data[data_test_size:, :]
 
 solsize = sol_data_train.shape[1]
 print(f"solution train data: {sol_data_train.shape}")
@@ -138,33 +133,8 @@ else:
                             shuffle=True,
                             verbose=1,
                             validation_data=(sol_data_val_with_noise,sol_data_val),callbacks=[mkcheckpoint, saveEpochInfoCb])
-
-hist_pd = pd.DataFrame(history.history)
-hist_pd.to_csv(f"{savedModelPath}/history.csv")
-ax = hist_pd.plot()
-title = f'Deep AE Learning Curve: hidden layers:{hidden_layer_num}, code length:{code_len}'
-ax.set_title(title)
-learning_curve_file = f"{savedModelPath}/LearingCurve-HL{hidden_layer_num}-CL{code_len}.png"
-ax.figure.savefig(learning_curve_file)
-#plt.show()
-
-# Do testing for trained model
-outfile.write("\nPredict solutions and compute errors\n")
-decoded_sols = autoencoder.predict(sol_data_val)
-for i in range(0, 50):
-    max_sol = np.amax(np.abs(sol_data_val[i,:]))
-    max_sol = np.max([max_sol, 1.0e-6])
-    error = np.amax(np.absolute(sol_data_val[i,:]-decoded_sols[i,:]))/max_sol
-    outfile.write(f"{error:.4f}\n")
-
-# Compute error statistics
-outfile.write("\nCompute error statistics\n")
-for i in range(0, 50):
-    error = np.absolute(sol_data_val[i,:] - decoded_sols[i,:])
-    outfile.write(f"mean = {error.mean():.4f}, std = {error.std():.4f}, var = {error.var():.4f}, min = {error.min():.4f}, max = {error.max():.4f}\n")
-
 # SAVE weights and model
-autoencoder.save_weights(savedModelPath + '/Weights.hdf5')
-autoencoder.save(savedModelPath + "/Model.hdf5")
+autoencoder.save_weights(savedModelPath + '/LearnSolWeights.hdf5')
+autoencoder.save(savedModelPath + "/LearnSolModel.hdf5")
 
 outfile.close()
