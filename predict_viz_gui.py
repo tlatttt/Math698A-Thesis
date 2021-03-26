@@ -70,6 +70,9 @@ def RandomPredicts():
         decoded_sols =model.predict(sol_data_train)
         computeErrors(sol_data_train, decoded_sols)
     else:
+        if (learnType.get() == "lcocnn"):
+            dms = int(np.cbrt(solsize))
+            sol_data_train = np.reshape(sol_data_train, (len(sol_data_train), dms,dms,dms,1))
         decoded_sols =model.predict(sol_data_train)
         computeErrors(coll_data_train, decoded_sols)
 
@@ -134,6 +137,9 @@ def PlotOnePredictedSol():
     MM = int(MMVar.get())
     Mtrim = int(MtrimVar.get())
     sol_train, coll_train, solsize = my_readwrite.my_read_sol_coll_trim(solfile,MM, Mtrim)  # this is the first file
+    if (learnType.get() == "lcocnn"):
+        dms = int(np.cbrt(solsize))
+        sol_train = np.reshape(sol_train, (len(sol_train), dms,dms,dms,1))
     decoded_sol = model.predict(sol_train)
     if (learnType.get() == "ls"):
         plotOnePredictedSol(sol_train[0],decoded_sol[0])
@@ -152,6 +158,7 @@ learnType = StringVar()
 learnType.set("ls")
 ttk.Radiobutton(f, text="Learn Solutions", variable=learnType, value="ls").grid(row=0, column=0, pady=5)
 ttk.Radiobutton(f, text="Learn Collision Operator", variable=learnType, value="lco").grid(row=0,column=1,pady=5)
+ttk.Radiobutton(f, text="Learn Collision Operator CNN", variable=learnType, value="lcocnn").grid(row=0,column=2,pady=5)
 
 # Trimming parameters and solution info
 MMVar = IntVar()

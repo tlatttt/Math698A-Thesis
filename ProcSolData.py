@@ -20,7 +20,7 @@ def LoadSolCollData(path):
 	sol_data_train, coll_data_train, solsize = my_readwrite.my_read_sol_coll_trim(names[0],MM, Mtrim)  # this is the first file
 	zz = len(names)
 	num_samples = int(len(names))
-	#num_samples = 100
+	#num_samples = 7000
 	for i in range(1,num_samples,1):	
 		if (i % 10) == 0:
     			print("Proscessing " + str(i) + " of " + str(num_samples))
@@ -46,7 +46,7 @@ def LoadSolData(path):
     names = my_readwrite.my_get_soltn_file_names_time(path, cutoff_time)
     sol_data, solsize = my_readwrite.my_read_solution_trim(names[0],MM, Mtrim)
     num_samples=int(len(names))
-	#num_samples = 100
+    # num_samples = 100
     for i in range(1,num_samples,1):
         if (i % 10) == 0:
             print("Proscessing " + str(i) + " of " + str(num_samples) + " files for dataset")
@@ -69,7 +69,7 @@ MM = 41
 Mtrim = 5
 cutoff_time = 0.30
 
-sol_data_file = f"Data/sol_data_MM_{MM}_MT_{Mtrim}_CT_{cutoff_time}.pk"
-coll_data_file = f"Data/coll_data_MM_{MM}_MT_{Mtrim}_CT_{cutoff_time}.pk"
+sol_data_file = f"Data/small_sol_data_MM_{MM}_MT_{Mtrim}_CT_{cutoff_time}.pk"
+coll_data_file = f"Data/small_coll_data_MM_{MM}_MT_{Mtrim}_CT_{cutoff_time}.pk"
 CreateSolColData(sol_data_file, coll_data_file)
 #CreateSolData(sol_data_file)

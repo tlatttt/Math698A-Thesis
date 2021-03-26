@@ -27,9 +27,9 @@ class SaveEpochInfo(keras.callbacks.Callback):
         outfile.flush()
 
 # main entry point start from here
-MM = 41
-Mtrim = 5
-dms=MM-2*Mtrim
+#MM = 41
+#Mtrim = 5
+#dms=MM-2*Mtrim
 
 settings = Utilities.LoadSettings()
 print(settings)
@@ -43,10 +43,10 @@ retrain = int(settings["retrain"])
 loss_fn = settings["loss_fn"]
 
 print("Loading solution and collision datasets")
-#sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
-#coll_data = Utilities.LoadPickleSolData("Data/full_coll_data.pk")
-sol_data = Utilities.LoadPickleSolData("Data/small_sol_data_MM_41_MT_5_CT_0.3.pk")
-coll_data = Utilities.LoadPickleSolData("Data/small_coll_data_MM_41_MT_5_CT_0.3.pk")
+sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
+coll_data = Utilities.LoadPickleSolData("Data/full_coll_data.pk")
+#sol_data = Utilities.LoadPickleSolData("Data/small_sol_data_MM_41_MT_5_CT_0.3.pk")
+#coll_data = Utilities.LoadPickleSolData("Data/small_coll_data_MM_41_MT_5_CT_0.3.pk")
 
 #sol_data = Utilities.LoadPickleSolData("Data/cleaned_sol_data.pk")
 #coll_data = Utilities.LoadPickleSolData("Data/cleaned_coll_data.pk")
@@ -75,10 +75,11 @@ if (retrain == 0):
     # Construct CNN model
     print("Construct CNN model")
     learnColOp = Sequential()
-    learnColOp.add(Conv3D(filters=4, kernel_size=(5,5,5), padding="same", data_format="channels_last",
-                    activation="relu", input_shape=(dms,dms,dms,1)))
-    learnColOp.add(keras.layers.BatchNormalization())
+    learnColOp.add(Conv3D(filters=4, kernel_size=(5,5,5), padding="same", data_format="channels_last", input_shape=(dms,dms,dms,1)))
+    learnColOp.add(keras.layers.PReLU())
 
+    #learnColOp.add(keras.layers.BatchNormalization())
+    
     learnColOp.add(Conv3D(filters=8,kernel_size=(3,3,3),padding="same",data_format="channels_last"))
     learnColOp.add(keras.layers.PReLU())
 
@@ -99,7 +100,13 @@ if (retrain == 0):
     # Create an output file for writing info during the training
     outfile = open(savedModelPath + "/output.txt", "w")
 else:
-    savedModelPath = f"learn_coll_op_cnn-MAE-03_07_2021-23_03_06"
+    #savedModelPath = f"learn_coll_op_cnn-MAE-HL5-03_09_2021-22_52_00"
+    #savedModelPath = f"learn_coll_op_cnn-MAE-HL5-03_10_2021-20_23_05"
+    #savedModelPath = f"learn_coll_op_cnn-MAE-HL5-03_11_2021-19_08_22"
+    #savedModelPath = f"learn_coll_op_cnn-MAE-HL5-03_12_2021-08_46_36"
+    #savedModelPath = f"learn_coll_op_cnn-MAE-HL5-03_18_2021-05_16_10"
+    savedModelPath = f"learn_coll_op_cnn-MSE-HL5-03_25_2021-01_02_23"
+    
     outfile = open(savedModelPath + "/retrain_output.txt", "w")
 
 weight_files = savedModelPath + "/BestLearnColOpModel.hdf5"
@@ -122,8 +129,8 @@ if (retrain == 0):
     else:  
         learnColOp.compile(optimizer=adamax,loss='mean_squared_error',metrics=['accuracy']) 
 else:   
-   learnColOp = keras.models.load_model(savedModelPath + "/LearnColOpModel.hdf5")
-   be.set_value(learnColOp.optimizer.lr, 0.001)
+   learnColOp = keras.models.load_model(savedModelPath + "/LearnColOpCNNModel.hdf5")
+   #be.set_value(learnColOp.optimizer.lr, 0.001)
 
 # reshape datasets
 print("reshape datasets")
