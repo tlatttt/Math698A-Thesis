@@ -1,10 +1,10 @@
-learn_type learn_coll_op_cnn
+learn_type learn_sol
 loss_fn MAE
 epochs 100
-hidden_layers 5
+hidden_layers 3
 code_len 32
-batch_size 128
+batch_size 32
 noise 0
 predict_type 0
-retrain 1
+retrain 0
 num_test_solutions 20

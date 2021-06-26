@@ -209,6 +209,39 @@ def my_read_solution_trim (path, M, Mtrim):
       print('my_read_solution_trim: Attention truncating at least one large value. treshld=', treshld)
     return soltrm, nsze
 
+
+###########################################################
+## solution_trim
+# We are ready to trim the array/
+
+def solution_trim(sol,M,Mtrim):
+    import numpy
+    Mnew=M-2*Mtrim
+    nsze=Mnew**3
+    soltrm = numpy.zeros((1,nsze))
+    for i in range(Mnew):
+        for j in range(Mnew):
+            for k in range(Mnew):
+                soltrm[0,i*Mnew*Mnew+j*Mnew+k]=sol[0,(Mtrim+i)*M*M+(Mtrim+j)*M+Mtrim+k ]
+    # the trimmed solution has been recorded.
+    # Next we will check magnitudes of the truncated values and issue a warning if
+    # Large values were truncated
+    treshld=1.0e-2
+    lrg_val_flg=False
+    for i in range(M**3):
+      # unwrap the index
+      iu = i // (M*M)
+      iv = (i-iu*M*M) // (M)
+      iw =  i-iu*M*M-iv*M
+      if (iu<Mtrim) or (iu > (M - 1 - Mtrim)) or (iv < Mtrim) or (iv > (M - 1 - Mtrim)) or (iw < Mtrim) or (iw > (M - 1 - Mtrim)):
+          if numpy.abs(sol[0,i]) >= treshld:
+               lrg_val_flg=True
+    if lrg_val_flg:
+      print('my_read_solution_trim: Attention truncating at least one large value. treshld=', treshld)
+    return soltrm, nsze
+
+
+
 ##########################################################
 # solution_untrim(soltrm,Mshrt,Mtrim)
 #
@@ -349,3 +382,59 @@ def my_read_sol_coll_trim (path, M, Mtrim):
     if lrg_val_flg:
       print('my_read_sol_coll_trim: Attention truncating at least one large value. treshld=', treshld)
     return soltrm, colltrm, nsze
+
+############################################
+# This subroutine will read the novdes and weigths arrays
+# from a save file created by DGVlib
+#
+# ########################
+def read_nodes(filename):
+#open binary file
+    savefile=open(filename, 'rb')
+
+    #the first write is to record sizes of nodes arrays.
+    # the size is 4 bytes integer in fortran ads 32 bits before and after the written staff.
+    # so 4 bytes+4 bytes+ 4bytes is 12
+    bytes=savefile.read(12)
+    # now that we got the first piece of information, let us unpack it using struct
+    import struct
+    data=struct.unpack('=lll',bytes)
+    scr1=data[0]
+    nn=data[1]
+    scr2=data[2]
+    #the second piece of information is the length of the nodes arrays together,
+    #not clear what the size of the array is, will try for long integer (4 bytes)
+    #
+    bytes=savefile.read(4)
+    data=struct.unpack('=l',bytes)
+    data_size = data[0]    #Fortran writes the total length of data in bytes in a write statements in the beginning and in the end of the record
+    #next we read arrays nodes_u,_v,_w _gwts. each one should be nn long array of double precision
+    bytes = savefile.read(nn*8)
+    fmt='='+str(nn)+"d"
+    arryscr=struct.unpack(fmt,bytes)
+    # next we convert the sequence into a numpy array to return it.
+    import numpy
+    nodes_u = numpy.array(arryscr).reshape(1,nn)
+    bytes = savefile.read(nn*8)
+    arryscr = struct.unpack(fmt, bytes)
+    nodes_v = numpy.array(arryscr).reshape(1,nn)
+    bytes = savefile.read(nn*8)
+    arryscr = struct.unpack(fmt, bytes)
+    nodes_w = numpy.array(arryscr).reshape(1,nn)
+    bytes = savefile.read(nn * 8)
+    arryscr = struct.unpack(fmt, bytes)
+    nodes_gwts = numpy.array(arryscr).reshape(1,nn)
+    # close the file
+    savefile.close()
+
+    return nodes_u, nodes_v, nodes_w, nodes_gwts
+
+#######################################
+### save_moments(filename,moments_array)
+###
+### This subroutine write moments array on the hard drive in the csv format.
+###
+###
+def save_moments(filename,moments_array):
+    import numpy as np
+    np.savetxt(filename, moments_array, delimiter=',')

@@ -7,21 +7,25 @@
 \usepackage{appendix}
 \usepackage{subcaption}
 \usepackage{hyperref}
+\usepackage{titling}
 %\usepackage{wrapfig}
 
-\begin{document}
 \title{Development of Neural Networks for Learning The Boltzmann Equation	 }
-\author{Thomas V Nguyen}
-\maketitle
-\begin{center}
-Department of Mathematics, CSUN, Northridge, CA 91303 \\
-Advisor: Professor Alexander M. Alekseenko
-\end{center}
+\author{Thomas V Nguyen \\ \\ Department of Mathematics, CSUN, Northridge, CA 91303 \\
+	Advisor: Professor Alexander M. Alekseenko
+}
+\date{}
+
+\begin{document}
+\begin{titlepage}
+	\maketitle
+\end{titlepage}
+
 \section*{Abstract} During the past decades, there are different methods that have been developed to solve the Boltzmann equation: the direct simulation Monte Carlo (DSMC) method, the lattice Boltzmann method (LBM), and the direct deterministic method for computing the Boltzmann equation. In this paper, we explore the physical aspect of the Boltzmann equation and the novel neural network methods for learning the solutions of the Boltzmann equation.
 \section{Introduction} \label{Intro}
 The Boltzmann equation describes the statistical behavior of a system of rarefied gases in the non-equilibrium, nonlinear state. The equation analyzes a probability distribution $f(t,\vec{x}, \vec{v})$ for the position and velocity of a typical particle in the small region of $d^3x$ and a small region $d^3v$ of velocity space. The Boltzmann equation is a nonlinear integral differential equation and the unknown function in the equation is a probability density function $f(t,\vec{x}, \vec{v})$ in six-dimensional space of a particle position and velocity and the function $f(t,\vec{x}, \vec{v})$ is evolved in time t. Exact solutions to the Boltzmann equations have been difficult to obtain and is not generally usable in practical problems until the advent of computer technology and numerical analysis methods. Numerically, there have been two development methods of simulating and solving the Boltzmann equation: stochastic and deterministic methods. 
 
-For the stochastic methods, the direct simulation Monte (DSMC) method has been widely used. The DSMC method was first introduced by G.A. Bird in 1963 \cite{BirdGA1} and have been a popular method for numerical simulation of rarefied gas flows. This method randomly generates the number of simulated particles and tracking the binary collisions among the simulated particles such that to reproduce the underlying physics of the Boltzmann equation. The popular of the DSMC is due to the combination of accuracy, simplicity, and computational efficiency. Beside the Bird’s original method, There are different implementations of DSMC method have developed as described in \cite{DSMC1, DSMC2, DSMC3}. 
+For the stochastic methods, the direct simulation Monte (DSMC) method has been widely used. The DSMC method was first introduced by G.A. Bird in 1963 \cite{BirdGA1} and have been a popular method for numerical simulation of rarefied gas flows. This method randomly generates the number of simulated particles and tracking the binary collisions among the simulated particles to reproduce the underlying physics of the Boltzmann equation. The popular of the DSMC is due to the combination of accuracy, simplicity, and computational efficiency. Beside the Bird’s original method, There are different implementations of DSMC method have developed as described in \cite{DSMC1, DSMC2, DSMC3}. 
 
 The deterministic method of solving the Boltzmann equation is suitable for parallel processing for the computer system that have many CPU cores. One of the deterministic method of solving the Boltzmann equation is the Lattice-Boltzmann method (LBM )as described in the \cite{LBM1, LBM2}. The objective of the LBM methods is to provide simpler model equations for rarefied gas dynamics. Another deterministic method of solving Boltzmann equation is called the discontinuous Galerkin (DG) velocity approximations that can accommodate for the functions discontinuities. \cite{Alekseenko1, Alekseenko2} explored the high order DG discretization using the Gauss quadrature nodes and the Lagrange polynomial basis functions. \cite{Alekseenko4} used the Discrete Fourier Transform to compute the DG approximation for the Boltzmann solution. One can refer \cite{VVAristo} to study the different direct methods for solving the Boltzmann Equation.
 
@@ -29,8 +33,9 @@ In this paper, we will develop a novel method by applying the machine learning a
 \begin{itemize}
 	\item Section 2 describes the gas kinetic assumptions and the brief derivation of the Boltzmann equation and its applications.
 	\item Section 3 describes the deterministic method for obtaining the solutions of the Boltzmann equation as discussed in \cite{Alekseenko2, Alekseenko4} and the structure of the solution data. This solution data is used as the dataset for neural networks' input.
-	\item Section 4 describes the general neural network architecture and specifically how the autoencoder is used to reduce the input dimension of the Boltzmann equation solutions and how the hidden layers use the reduced dimension data to predict the outputs which are the approximations of the autoencoder input.
-	\item Section 5 compares the computational efficiency between the deterministic method and the autoencoder method for the solutions of Boltzmann equation.
+	\item Section 4 describes the general neural network architecture, specifically the fully-connected neural (FCNN) network and convolutional neural network (CNN).
+	\item section 5 describes the results of using the FCNN to learn the Boltzmann equation's solutions and CNN to learn the collision operator.
+	\item Section 6 compares the computational efficiency between the deterministic method and the autoencoder method for the solutions of Boltzmann equation.
 \end{itemize}
 
 \section{The Boltzmann Equation and its application}
@@ -40,7 +45,7 @@ The Boltzmann equation is derived with the following assumptions of the kinetic 
 \begin{itemize}
 \item Gas consists of very small particles known as molecules having the same mass.
 \item The motion of the molecules can be described by Newtonian mechanics.
-\item The number of molecules is so large that statistics can be applied.	content...
+\item The number of molecules is so large that statistics can be applied.
 \item The total volume of the individual gas molecules added up is negligible compared to the volume of the container. Hence, only binary collisions occur between molecules and collisions are perfectly elastic. Kinetic energy and momentum are conserved.
 \item The elapsed time of a collision between a molecule and the container's wall is negligible when compared to the time between successive collisions.
 \end{itemize}
@@ -135,15 +140,14 @@ In this section, we will discuss the method of generating the solution data set 
 \begin{itemize}
 \item Macroparameters of two homogeneous Gaussians are randomly generated and consecutively normalized so that the sum of Gaussians has unit density, zero bulk velocity, and pre-selected values of temperature of 0.5 and 0.2. The sum of two homogeneous Gaussians is used as the initial data for the solution.
 \item Equation \ref{BoltzHomo} is solved by \cite{Alekseenko4} for each set of randomly generated initial data. As the solutions are evolving in time, they are saved at even intervals of time. The computed solutions were saved in the files which will be used to construct the dataset for section \ref{NN}.
-\item The solutions were computed on $41^3$ discrete points. Due to the fact that solutions are very small near the boundary, a number of discrete points can be removed from the solution for analysis. The truncated solution has $25^3$ discrete points and the dataset has about 5000  generated solution data.
+\item The solutions were computed on $41^3$ discrete points. Due to the fact that solutions are very small near the boundary, a number of discrete points can be removed from the solution for analysis. The truncated solution has $31^3$ discrete points and the dataset has about 28,147  generated solution data.
  
 \end{itemize}
 
-\section{Neural network for learning the solutions of Boltzmann equation} \label{NN}
-In this section, we will describe a general architecture of a neural network. How the gradient descent and backpropagation algorithms are used to train a neural network to obtain the weights of a neural network. Then we will specifically describe the autoencoder architectures that are used in this paper to learn the Boltzmann solution dataset.
-\subsection{Neural networks and autoencoder architectures} \label{NN}
-\subsubsection{A general fully connected neural network architecture } \label{FCNN}
-A general neural network composes of an input layer, a stack of hidden layers, and an output layer as shown in figure \ref{fig:NN} which has two hidden layers. Figgure \ref{fig:NN} is called a fully connected neural network because each neuron in a hidden layer is connected to all the neurons in the previous layer.
+\section{Neural networks architectures} \label{NN}
+In this section, we will describe a general architecture of a neural network. How the gradient descent and back propagation algorithms are used to train a neural network to obtain the weights of a neural network. Specifically, we will describe two neural networks that are used to learn the Boltzmann equation solutions and collision operator: the fully connected neural network and convolutional neural network.
+\subsection{A general fully connected neural network architecture } \label{FCNN}
+A general neural network composes of an input layer, a stack of hidden layers, and an output layer as shown in figure \ref{fig:NN} which has two hidden layers. Figure \ref{fig:NN} is called a fully connected neural network because each neuron in a hidden layer is connected to all the neurons in the previous layer.
 \begin{figure}[h]
 	\includegraphics[width=.75\textwidth]{NN.pdf}
 	\caption{A general neural network architecture}
@@ -180,7 +184,7 @@ MAE = \frac{1}{m}\sum_{i=1}^{m}|\hat{y}^i - y^i|
 \end{equation}
 where m is the number of instances in the dataset, $x^i$ is a vector of all the input features of the $i^{ih}$ instance, and $y^i$ is the expected output value. To obtain the set of weights $w_i$ that is best fit to the dataset is to find the optimal solution for either MSE or MAE functions. 
 
-Gradient descent algorithm is the popular method to find the optimal solution any convex function like MSE or MAE error functions. The gradient descent algorithm starts with an random weight vector $\vec{\mathbf{w}}$ and measures the local gradient of the error function with respect to the parameter weight vector $\vec{\mathbf{w}}$. Then it goes in the direction of descending gradient until the error function reaches to the minimum. Specifically, for a dataset $\mathbf{X}^{m \times n}$, in each iteration, the weight vector is computed as:
+Gradient descent algorithm is a popular method to find the optimal solution any convex function like MSE or MAE error functions. The gradient descent algorithm starts with an random weight vector $\vec{\mathbf{w}}$ and measures the local gradient of the error function with respect to the parameter weight vector $\vec{\mathbf{w}}$. Then it goes in the direction of descending gradient until the error function reaches to the minimum. Specifically, for a dataset $\mathbf{X}^{m \times n}$, in each iteration, the weight vector is computed as:
 \begin{equation} \label{fullbatchweightComp}
 \mathbf{\vec{w}}^{t+1} = \mathbf{\vec{w}}^t - \eta\nabla_{\mathbf{\vec{w}}}MSE(\mathbf{\vec{w}}) 
 \end{equation}
@@ -199,7 +203,7 @@ The above discussion is for training a neuron. A neural network is composed of a
 \end{enumerate}
 The algorithm iterates these steps until the error of the network converges to the acceptable minimum value.
 
-\subsubsection{Convolutional neural network architecture} \label{CNN}
+\subsection{Convolutional neural network architecture} \label{CNN}
 In this project, we also use the convolutional neural network (CNN) to learn the Boltzmann equation's solutions. As shown in \ref{fig:CNN}, a CNN consists of input layers, convolutional layers, pooling layers, fully-connected layers, activation functions, and output layers. Comparing with the fully-connected neural network, a CNN architecture introduces two new building block: convolutional layers and pooling layers. Below, we briefly describes the structure of a convolutional layer and a pooling layer.
 
 In a convolutional layer, neurons are only partially connected with the neurons in the previous layer: each neuron is only connected to the neurons located within a small rectangle in the previous layer. This small window is called the receptive field. This architecture allows the CNN to focus on small low-level features in the preceding hidden layer, then assemble them into larger higher-level features in the next hidden layer, and so on. This receptive field window is then moved across the layer horizontally and vertically with a step size called the stride length. All the receptive field share the same set of weights known as the kernel or filter. The outputs from this filter is known as a feature map. A convolutional layer may have multiple filters with each filter has different weights allowing a convolutional layer to detect multiple features of the inputs. 
@@ -214,8 +218,12 @@ After the convolutional and pooling layers, the remaining part of a CNN is the f
 \caption{A basic convolutional neural network diagram}
 \label{fig:CNN}
 \end{figure}
+
+\section{Using fully-connected autoencoder and convolutional neural network to learn the Boltzmann equation solutions and collision operator.}
+In this section, we will describe the autoencoder and conventional neural network architectures and how the these two neural networks are used to learn the Boltzmann equation data solution and the Boltzmann collision operator. 
+
 \subsection{Learning solution data using autoencoders}
-In this section, we will describe the deep autoencoder architecture and how the autoencode is used to learn the Boltzmann equation data solution and the Boltzmann collision operator. Figure \ref{fig:ae} shows a typical autoencoder architure. In an autoencoder, the number of neurons in an input layer is always equal to the number of neurons in the output layer. An autoencoder composes of two submodels: an encoder and a decoder.
+Figure \ref{fig:ae} shows a typical autoencoder architure. In an autoencoder, the number of neurons in an input layer is always equal to the number of neurons in the output layer. An autoencoder composes of two submodels: an encoder and a decoder.
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Autoencoder.pdf}
@@ -240,8 +248,17 @@ As shown in figure \ref{fig:ColOpAE}, the Boltzmann collision operator is approx
 \partial_t{\tau} = \partial_t(\psi(f)) = \frac{\partial\psi}{\partial f}:\frac{\partial f}{\partial t} = \frac{\partial\psi}{\partial f}:Q(f) = \frac{\partial\psi}{\partial f}:Q(\psi^+(\tau)) = \phi(\tau)
 \end{equation}
 
-\subsubsection{Learing solution data using deep autoencoder}
-In this section, we will discuss the results of using deep autoencoders to learn the Boltzmann equation solutions. One can refer to appendix A, appendix B, appendix C for the detail of how we used the software tools, language, and training environment to develop the different autoencoders. Table \ref{table:ae} below shows the accuracy of different deep autoencoders with various hidden layers and code lengths. Figure \ref{fig:lc} shows the learning curves of autoencoders with hidden layers of 1, 3, and 5 and code length of 32.
+\subsubsection{Learing solution data using autoencoder}
+In this section, we will discuss the results of using autoencoders to learn the Boltzmann equation solutions. One can refer to appendix A, appendix B, appendix C for the detail of how we used the software tools, language, and training environment to develop the different autoencoders. Following are the features of the autoencoders that we used to learn the Boltzmann equation solutions:
+\begin{itemize}
+	\item There are 28,147 solution data in the sample dataset. We used 90\% of samples for training and 10\% for validation.
+	\item The input layer has 29,791 input neurons and the output layer also has the same number of neurons.
+	\item For hidden layers, we used 1, 3, and 5 hidden layers.
+	\item For optimizer, we use Adam (\emph{adaptive moment estimation}) which is a faster optimizer than a regular gradient descent optimizer.
+	\item For activation function, we used ReLU.
+	\item For the loss function, we use MAE is used.
+\end{itemize}
+Table \ref{table:ae} below shows the accuracy of different autoencoders with various hidden layers and code lengths.
 
 \begin{table} [h!]
 \centering
@@ -250,36 +267,126 @@ In this section, we will discuss the results of using deep autoencoders to learn
 	\hline
 	Code Length & 16 & 32 & 64 & 16 & 32 & 64 & 16 & 32 & 64 \\
 	\hline
-	Accuracy, MAE & 0.66 & 0.66 & 0.66 & 0.93 & 0.96 & 0.98 & 0.96 & 0.97 & 0.98
+	Accuracy, MAE & 0.78 & 0.78 & 0.78 & 0.97 & 0.98 & 0.99 & 0.99 & 0.99 & 0.99
 \end{tabular}
 \caption{Accuracy of autoencoders with different number of hidden layers and code length. Mean absolute error (MAE) is used to measure the accuracy}
 \label{table:ae}
 \end{table}
 
-\begin{figure}[h]
-\begin{subfigure}{.5\textwidth}
-\includegraphics[width=.75\linewidth]{LearingCurve-HL1-CL32.png}
-\end{subfigure}
-\begin{subfigure}{.5\textwidth}
-\includegraphics[width=.75\linewidth]{LearingCurve-HL3-CL32.png}
-\end{subfigure}
-\begin{subfigure}{.5\textwidth}
-\includegraphics[width=.75\linewidth]{LearingCurve-HL5-CL32.png}
-\end{subfigure}
-\caption{Learning curves of autoencoders with hiddend layers of 1, 3, 5 and code length 32 }
-\label{fig:lc}
-\end{figure}
-\noindent From table \ref{table:ae} and figure \ref{fig:lc}, we have the following observations:
+We can add noise to the inputs and train the autoencoders to learn the features of the data. Following is the results of noises to the inputs with three hidden layers: 
+\begin{table} [h!]
+\centering
+\begin{tabular}{c|c|c|c|c}
+	Hidden Layers & 3 & 3 & 3 & 3 \\
+	\hline 
+	Code Length & 32 & 32 & 32 & 32 \\
+	\hline
+	Noise & 10\% & 15\% & 20\% & 25\% \\ 
+	\hline
+	Accuracy & 0.98 & 0.98 & 0.98 & 0.98
+\end{tabular}
+\caption{Accuracy of autoencoders with noises added to the inputs}
+\label{table:ae_noise}
+\end{table}
+
+\noindent From table \ref{table:ae} and table \ref{table:ae_noise}, we have the following observations:
 \begin{itemize}
-	\item For autoencoders which have one hidden layer, the accuracy scores are low: 0.66. In this case, these autoencoders are underfitting.
+	\item For autoencoders which have one hidden layer, the accuracy scores are low: 0.78. In this case, these autoencoders are underfitting.
 	\item For autoencoders which have three hidden layers, the accuracy scores are very good. However, with code length of 64, the accuracy score is 0.98. In this case, the model could be overfitting.
-	\item For autoencoders which have five hidden layers, the accuracy scores improve slightly comparing with the autoencodes with three hidden layers. 
+	\item For autoencoders which have five hidden layers, the accuracy scores improve slightly comparing with the autoencodes with three hidden layers.
+	\item Adding noise to the inputs, the accuracy scores is still the same as if no noises are added to the inputs.  
 \end{itemize}
-Among these autoencoders, the autoencode with three hidden layers and code length 32 is probably is the best choice model. The second choice is the autoencoder with three hidden layers and code length 16 because the model is less complex, faster to train and compute, and the accuracy score is still about 0.93.
+Among these autoencoders, the autoencode with three hidden layers and code length 32 is probably is the best choice model. The second choice is the autoencoder with three hidden layers and code length 16 because the model is less complex, faster to train and compute, and the accuracy score is still about 0.98.
 
-\subsubsection{Learing solution data using convolutional autoencoder}
+\subsubsection{Using trained autoencoder model to predict and visualize predicted solutions}
+After training autoencoders, we can use these trained autoencoders to predict, visualize, and compare the computed solutions with the predicted solutions. Figure \ref{fig:Sol190} shows the graphs that autoencoder predicts a seen solution and the error graph shows the error is about 5\%. Figure \ref{fig:Sol508} shows the graphs for the solution that the model has not seen it before and the error graph shows the error is about 1\%.
 
-\section{Computational efficiency comparisons between the numerial and neural network methods for computing the solutions of Boltzmann equation } \label{Comparisons}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=.99\textwidth]{Sol_predict_190.png}
+	\caption{An autoencoder that is used to predict a solution that the model has seen the solution before.}
+	\label{fig:Sol190}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=.99\textwidth]{Sol_predict_508.png}
+	\caption{An autoencoder that is used to predict a solution that the model has not seen it before.}
+	\label{fig:Sol508}
+\end{figure}
+
+\subsection{Learing collision operator using convolutional neural network (CNN)}
+In this section, we will describe the CNN architecture that we used to learn the collision operator, to use the trained model to predict and visualize the solutions, and to use the Euler method to solve the differential equation based on the spatially homogeneous equation as described in section \ref{BoltzEq}
+\begin{equation}
+\frac{\partial}{\partial t}f(t,\vec{v}) = I[f](t, \vec{v})
+\end{equation}
+
+\subsubsection{CNN architecture to learn collision operator}
+For learning collision operator, we found that the ReLU activation function did not perform well while traing the model to learn the collision operator because the ReLU has a zero slope in the negative region. To solve this problem, we used a variant of ReLU named as \emph{Leaky} ReLU which has a small positive slope in the negative part . Specifically, we used the \emph{parametric leaky} ReLU (PReLU) so that the slope of the ReLU in the negative region is adjusted accordingly during the training. Furthermore, the reason we chose the CNN because the CNN performed better than the fully-connected neural network. Below is the features of the CNN that we use for training. One can refer to section \ref{CNN} for details of CNN architecture:
+
+\begin{itemize}
+	\item Rather than one dimension, the input data is three dimensions.
+	\item The first hidden layer is a 3D convolutional layer with four filters with kernel size of (5,5,5).
+	\item The second hidden layer is a 3D max pooling layer with kernel size of (2,2,2).
+	\item The third hidden layer is a 3D convolutional layer with 16 filters with kernel size of (3,3,3).
+	\item The forth hidden layer id 3D max pooling layer with kernel size of (2,2,2).
+	\item the fifth hidden layer is a 3D convolutional layer with 32 filters with kernel size of (3,3,3).
+	\item The last hidden layer is a fully-connected layer with the one dimensional input.
+	\item For activation function, we used the PReLU activation function as discussed above.
+	\item For the loss function, we used the MAE loss function.
+	\item For the optimizer, we used Adamax optimizer.
+\end{itemize}
+Unlike training an autoencoder which take less than an hour on a fast computer, training a CNN model to learn collision operator can take multiple days and the accuracy is about 80\% to 90\% which we will discuss in the next section.
+
+\subsubsection{Using trained CNN model to predict and visualize collision operator solutions}
+After training a CNN model to learn collision operator, we can use the trained CNN model to predict a collision operator value given a Boltzmann equation solution. Figure \ref{fig:CollOp_167} and \ref{fig:CollOp_508} shows the CNN model can predict a seen solution and unseen solution with accuracy of 80\% and 90\% respectively.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=.99\textwidth]{CollOp_167.png}
+	\caption{A trained CNN model that is used to predict a seen solution.}
+	\label{fig:CollOp_167}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=.99\textwidth]{CollOp_508.png}
+	\caption{A trained CNN model that is used to predict an unseen solution.}
+	\label{fig:CollOp_508}
+\end{figure}
+
+\subsubsection{Solving Boltzmann spatially homogeneous equation numerically}
+With the homogeneous equation \ref{BoltzHomo} and a given initial value, we can use  the trained model that learn the collision operator to predict the collision operator values and  numerically approximate the solution values for equation \ref{BoltzHomo} using Euler method:
+\begin{equation}
+f_{k+1}= f_k + \Delta t \cdot I(t_k)
+\end{equation}
+After obtaining computed solution values numerically, we compute the moments of computed solution data as:
+\begin{equation}
+M_i = \int_{\mathbb{R}^3} (v_i - \tilde{v_i})^n f(v)dv
+\end{equation}
+where $n=2,3,4,5,6$ and $i=1,2,3$ for computing second moment, third moment, forth moment, fifth moment, and sixth moment. Figure \ref{fig:Moments_seen} and figure \ref{fig:Moments_unseen} show the second, third, and forth moments of spatially homogeneous solutions both the seen and unseen solutions. From these figures, we can see that the solutions reach to the correct steady state except at the end there are some violations of the conservation of mass.
+
+\begin{figure}[h]
+	\includegraphics[width=.30\textwidth]{M2_seen}
+	\hfill
+	\includegraphics[width=.30\textwidth]{M3_seen}
+	\hfill
+	\includegraphics[width=.30\textwidth]{M4_seen}
+	\caption{Relaxation of second, third, forth moments in seen solutions of spatially homogeneous problem}
+	\label{fig:Moments_seen}	
+\end{figure}
+
+\begin{figure}[h]
+	\includegraphics[width=.30\textwidth]{M2_unseen}
+	\hfill
+	\includegraphics[width=.30\textwidth]{M3_unseen}
+	\hfill
+	\includegraphics[width=.30\textwidth]{M4_unseen}
+	\caption{Relaxation of second, third, forth moments in unseen solutions of spatially homogeneous problem}
+	\label{fig:Moments_unseen}	
+\end{figure}
+
+\section{Computational efficiency of neural network methods for computing the solutions of Boltzmann equation } \label{Comparisons}
 
 \section{Conclusion} \label{Conclusion}
 

@@ -75,8 +75,8 @@ code_len = int(settings['code_len'])
 batch_size = int(settings['batch_size'])
 noise = int(settings["noise"]) 
 
-sol_data = Utilities.LoadPickleSolData("Data/cleaned_sol_data.pk")
-#sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
+#sol_data = Utilities.LoadPickleSolData("Data/cleaned_sol_data.pk")
+sol_data = Utilities.LoadPickleSolData("Data/full_sol_data.pk")
 
 # sol_data_train, sol_data_val = train_test_split(sol_data, test_size = 0.1)
 data_test_size = int(sol_data.shape[0]*0.1)

@@ -14,7 +14,7 @@ from tkinter import filedialog
 ###########################################################################
 ####  First we Set up mesh sizes and trimming: Copy and paste from the main.py
 ####  used to train the model above.
-####
+    ####
 MM = 41
 Mtrim = 5
 dms=MM-2*Mtrim
@@ -60,13 +60,19 @@ def ComputeSolution():
 
     ############# PREPARE SVD FILTER MATRIX
     import pickle
-    save_file = open('svd_41_7_first_101.dat', 'rb')
-    s = pickle.load(save_file)
-    svect = pickle.load(save_file)
+    #save_file = open('svd_41_7_first_101.dat', 'rb')
+    save_file = open('sol_SVD_100.dat', 'rb')
     lsvect= pickle.load(save_file)
+    s = pickle.load(save_file)
+    svect_untrimed = pickle.load(save_file)
     save_file.close()
     #print(s[0:100])
-
+    ### We need to trim the singular vectors 
+    svect = np.zeros((100, dms**3))
+    for i in range(svect_untrimed.shape[1]):
+        z, solsize = my_readwrite.solution_trim(svect_untrimed.T[i:i+1,:],MM,Mtrim) 
+        svect[i,:] = z
+    ## all done 
     #############################
     Flt_Zero_tmp = svect - np.matmul(np.matmul(svect,Q_m),Q_m.T)
     Flt_Cons_tmp = np.matmul(np.matmul(svect,Q_m),Q_m.T)
@@ -107,10 +113,10 @@ def ComputeSolution():
     count_auto_project=0
     while time < fin_time:
         ######## Record converved moments ###########4
-        #conserved_macroparams=my_utils.compute_conservative_moments(sol, nodes_u, nodes_v, nodes_w, nodes_gwts, MM, Mtrim)
-        conserved_macroparams = my_utils.compute_conservative_moments(sol_Cons+sol_Zero, nodes_u, nodes_v, nodes_w, nodes_gwts, MM, Mtrim)
-        #sol_5d = np.reshape(sol, (1, dms, dms, dms, 1))
-        sol_5d = np.reshape(sol_Cons+sol_Zero, (1, dms, dms, dms, 1))
+        conserved_macroparams = my_utils.compute_conservative_moments(sol, nodes_u, nodes_v, nodes_w, nodes_gwts, MM, Mtrim)
+        #conserved_macroparams = my_utils.compute_conservative_moments(sol_Cons+sol_Zero, nodes_u, nodes_v, nodes_w, nodes_gwts, MM, Mtrim)
+        sol_5d = np.reshape(sol, (1, dms, dms, dms, 1))
+        #sol_5d = np.reshape(sol_Cons+sol_Zero, (1, dms, dms, dms, 1))
         coll_oper_5d = learncollision.predict(sol_5d)
         coll_oper = np.reshape(coll_oper_5d, (1, dms*dms*dms))
         #coll_oper = coll_oper*(max_val-min_val)+min_val
@@ -141,7 +147,7 @@ def ComputeSolution():
 
         #################################
         sol[0,:] = sol[0,:] + dt*beta_coeff*coll_oper
-        sol_Zero[0, :] = sol_Zero[0, :] + dt * beta_coeff * coll_oper
+        #sol_Zero[0, :] = sol_Zero[0, :] + dt * beta_coeff * coll_oper
         time=time+dt
 
         ###################################
@@ -177,8 +183,8 @@ def ComputeSolution():
         #############################################
         ## Now we check if it is time to record the moments
         if time>next_time_eval_moms:
-            #sol_utm, iizizer = my_readwrite.solution_untrim(sol[0,:],MM-2*Mtrim,Mtrim)
-            sol_utm, iizizer = my_readwrite.solution_untrim(sol_Zero[0, :]+sol_Cons[0,:], MM - 2 * Mtrim, Mtrim)
+            sol_utm, iizizer = my_readwrite.solution_untrim(sol[0,:],MM-2*Mtrim,Mtrim)
+            #sol_utm, iizizer = my_readwrite.solution_untrim(sol_Zero[0, :]+sol_Cons[0,:], MM - 2 * Mtrim, Mtrim)
             entry_moments = my_utils.get_moments(sol_utm,nodes_u, nodes_v, nodes_w, nodes_gwts,time)
             rec_moments = np.concatenate((rec_moments, entry_moments), axis = 0)
             next_time_eval_moms =next_time_eval_moms+delta_t_eval_moms
@@ -187,7 +193,7 @@ def ComputeSolution():
         ## Add here subroutine to save solution
         ##
         if time>next_time_save_sol:
-            my_readwrite.save_moments('Sol101_ZR.txt',rec_moments)
+            my_readwrite.save_moments('moments.txt',rec_moments)
             next_time_save_sol=next_time_save_sol+delta_t_save_sol
 
     ############ ALL done. Last save and quit
@@ -195,6 +201,7 @@ def ComputeSolution():
     entry_moments = my_utils.get_moments(sol_utm, nodes_u, nodes_v, nodes_w, nodes_gwts, time)
     rec_moments = np.concatenate((rec_moments, entry_moments), axis=0)
     my_readwrite.save_moments('moments.txt',rec_moments)
+
 
 # Layout GUI
 def SelectColOpModel():
